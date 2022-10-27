@@ -1,0 +1,30 @@
+app:
+  app_name: ChatShock
+  app_host:
+  app_port: 18088
+  debug: true
+
+db:
+  db_name: chatshock
+  db_user: postgres
+  db_pass: 123456
+  db_host: localhost
+  db_port: 25432
+  ssl_mode: disable
+
+redis:
+  redis_host: localhost
+  redis_port: 26379
+
+phone:
+  app_key: "LTAIiqpV70phJ1vM"
+  app_secret: "A9u84iOl6Vh0ybgeZWJVXu4uHVxGtq"
+  template_code: "SMS_105835005"
+  sign_name: "许子恒"
+  host: "dysmsapi.aliyuncs.com"
+
+minio:
+  end_point: "http://localhost:29091/"
+  access_key_id: "quBdOrmVTXxS6UaH"
+  secret_access_key: "6Dbdk1CLG9xM96IpB51A4xycFOIrhA9A"
+  use_ssl: true
