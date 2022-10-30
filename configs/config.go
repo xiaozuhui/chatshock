@@ -1,19 +1,18 @@
 package configs
 
 import (
-	"flag"
 	"fmt"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
+	"github.com/minio/minio-go/v7"
 	"github.com/spf13/viper"
 	"gorm.io/gorm"
 )
 
-
 var (
-	configVersion string
-	DBEngine     *gorm.DB
+	DBEngine    *gorm.DB
 	RedisClient *redis.Client
 	Conf        *Config
+	MinioClient *minio.Client
 )
 
 type Config struct {
@@ -59,11 +58,6 @@ type MinioConfig struct {
 	UseSSL          bool   `json:"use_ssl"`
 }
 
-func init() { // 每个文件会自动执行的函数
-	flag.StringVar(&configVersion, "c", "dev", "请输入配置版本(dev,product,)")
-	flag.Parse()
-}
-
 func (c *Config) Parse(viper *viper.Viper) {
 	if viper == nil {
 		fmt.Println("Viper 为空")
@@ -105,5 +99,3 @@ func (c *Config) Parse(viper *viper.Viper) {
 	c.MinioConfig.SecretAccessKey = viper.GetString("minio.secret_access_key")
 	c.MinioConfig.UseSSL = viper.GetBool("minio.use_ssl")
 }
-
-
