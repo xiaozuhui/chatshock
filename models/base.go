@@ -1,3 +1,5 @@
+package models
+
 /*
  * @Author: xiaozuhui
  * @Date: 2022-10-28 14:25:14
@@ -5,7 +7,6 @@
  * @LastEditTime: 2022-10-31 14:27:22
  * @Description:
  */
-package models
 
 import (
 	"chatshock/entities"
@@ -23,12 +24,12 @@ type BaseModel struct {
 }
 
 func NewBaseModel() (*BaseModel, error) {
-	uuid, err := uuid.NewV4()
+	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
 	}
 	base := &BaseModel{
-		UUID:      uuid,
+		UUID:      id,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}

@@ -11,6 +11,7 @@ package utils
 import (
 	"chatshock/configs"
 	"context"
+	"fmt"
 	"log"
 	"mime/multipart"
 	"net/url"
@@ -96,14 +97,20 @@ func UploadImage(bucketName, objectName string, img *os.File) (*minio.UploadInfo
 /**
  * @description: 获取下载链接，这个下载链接是有过期时间的，所以每次请求都会重新生成
  * @tips: 在前端可以维护一个链接和资源的二维表，过期时间之前都可以直接用该链接，减少对资源的请求，或者在后端维护
- * @param {string} bucketName 桶名称
+ * @param {string} bucketName 桶名称，这里是用户的手机号码
  * @param {string} objectName 文件名称
  * @return {*url.URL, error} 文件可下载URL或错误
  * @author: xiaozuhui
  */
 func GetFileUrl(bucketName, objectName string) (*url.URL, error) {
 	ctx := context.Background()
-	_url, err := configs.MinioClient.PresignedGetObject(ctx, bucketName, objectName, time.Second*24*60*60, url.Values{})
+	expires := time.Second * 24 * 60 * 60
+	_url, err := configs.MinioClient.PresignedGetObject(ctx, bucketName, objectName, expires, url.Values{})
+	if err != nil {
+		return nil, err
+	}
+	// 取出url后，存入redis
+	_, err = RedisSet(fmt.Sprintf("%s-avatar_url", bucketName), _url.String(), &expires)
 	if err != nil {
 		return nil, err
 	}

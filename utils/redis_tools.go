@@ -17,6 +17,7 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
+// RedisSet
 /**
  * @description: 在redis中塞入数据已经过期时间
  * @param {*gin.Context} ctx

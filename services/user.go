@@ -58,6 +58,7 @@ func (s UserService) Register(userEntity entities.UserEntity) (*UserInfo, error)
 	if err != nil {
 		return nil, err
 	}
+	// 注册后默认登录
 	token, refresh, expireTime, err := utils.GenerateToken(ue.PhoneNumber)
 	if err != nil {
 		return nil, err
@@ -171,4 +172,9 @@ func (s UserService) GetUser(userID uuid.UUID) (*User, error) {
 		return nil, err
 	}
 	return user_, nil
+}
+
+func (s UserService) UpdateAccount(userEntity *entities.UserEntity) error {
+	err := s.UserRepo.UpdateAccount(*userEntity)
+	return err
 }

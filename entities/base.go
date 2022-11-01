@@ -1,3 +1,5 @@
+package entities
+
 /*
  * @Author: xiaozuhui
  * @Date: 2022-10-31 10:12:00
@@ -5,7 +7,6 @@
  * @LastEditTime: 2022-10-31 10:19:34
  * @Description:
  */
-package entities
 
 import (
 	"time"
