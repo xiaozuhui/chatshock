@@ -1,11 +1,12 @@
+package utils
+
 /*
  * @Author: xiaozuhui
  * @Date: 2022-10-31 12:22:19
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-10-31 23:44:18
+ * @LastEditTime: 2022-11-02 09:39:06
  * @Description:
  */
-package utils
 
 import (
 	"log"
@@ -13,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 )
 
@@ -43,12 +43,19 @@ type ValidCode struct {
 	CodeType   ValidCodeType `json:"code_type"`
 }
 
+// GenerateValidCode
+/**
+ * @description: 生成手机验证码
+ * @param {ValidCodeType} t
+ * @return {*}
+ * @author: xiaozuhui
+ */
 func GenerateValidCode(t ValidCodeType) *ValidCode {
 	v := ValidCode{}
 	if t == RegisterOrLogin {
 		v.CodeType = t
 		v.ValidCode = v.registerCode()
-		v.ExpireTime = time.Minute * 30
+		v.ExpireTime = time.Minute * 10
 	}
 	return &v
 }
@@ -57,14 +64,22 @@ func (v *ValidCode) registerCode() string {
 	return GetRandStr(6)
 }
 
-func CheckValidCode(ctx *gin.Context, phoneNumber string, vCode string) error {
+// CheckValidCode
+/**
+ * @description: 检查手机验证码
+ * @param {string} phoneNumber 手机号
+ * @param {string} vCode 验证码
+ * @return {error} 如果正确，error为nil，否则存在错误
+ * @author: xiaozuhui
+ */
+func CheckValidCode(phoneNumber string, vCode string) error {
 	validCode, err := RedisStrGet(phoneNumber)
 	if err != nil {
 		log.Println(errors.WithStack(err))
 		return err
 	}
 	if validCode == nil {
-		return errors.WithStack(errors.New("验证码为空，可能是因为没有请求验证码"))
+		return errors.WithStack(errors.New("验证码不存在或已经过期，请再次请求验证码"))
 	}
 	if strings.EqualFold(strings.ToUpper(vCode), strings.ToUpper(*validCode)) {
 		return errors.WithStack(errors.New("验证码错误"))

@@ -4,7 +4,7 @@ package services
  * @Author: xiaozuhui
  * @Date: 2022-10-31 15:20:26
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-01 14:40:14
+ * @LastEditTime: 2022-11-02 09:42:06
  * @Description:
  */
 
@@ -137,7 +137,7 @@ func (s UserService) Login(phoneNumber string) (*UserInfo, error) {
 /**
  * @description: 通过手机号获取用户
  * @param {string} phoneNumber
- * @return {*}
+ * @return {*User, error}
  * @author: xiaozuhui
  */
 func (s UserService) GetUserByPhoneNumber(phoneNumber string) (*User, error) {
@@ -159,7 +159,7 @@ func (s UserService) GetUserByPhoneNumber(phoneNumber string) (*User, error) {
 /**
  * @description: 通过ID获取用户
  * @param {uuid.UUID} userID
- * @return {*}
+ * @return {*User} 用户信息
  * @author: xiaozuhui
  */
 func (s UserService) GetUser(userID uuid.UUID) (*User, error) {
@@ -174,6 +174,13 @@ func (s UserService) GetUser(userID uuid.UUID) (*User, error) {
 	return user_, nil
 }
 
+// UpdateAccount
+/**
+ * @description: 更新账户信息
+ * @param {*entities.UserEntity} userEntity
+ * @return {*}
+ * @author: xiaozuhui
+ */
 func (s UserService) UpdateAccount(userEntity *entities.UserEntity) error {
 	err := s.UserRepo.UpdateAccount(*userEntity)
 	return err

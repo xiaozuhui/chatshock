@@ -4,7 +4,7 @@ package middlewares
  * @Author: xiaozuhui
  * @Date: 2022-10-31 10:52:04
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-10-31 10:52:41
+ * @LastEditTime: 2022-11-02 09:34:09
  * @Description:
  */
 
@@ -14,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/pkg/errors"
 )
 
 // JWTAuth 中间件，检查token
@@ -22,11 +23,7 @@ func JWTAuth() gin.HandlerFunc {
 		authHeader := ctx.Request.Header.Get("Authorization")
 		tokenStr, err := utils.GetToken(authHeader)
 		if err != nil {
-			ctx.JSON(http.StatusOK, gin.H{
-				"code": -1,
-				"msg":  err.Error(),
-			})
-			ctx.Abort() //结束后续操作
+			panic(errors.WithStack(err))
 		}
 		//解析token包含的信息
 		claims, err := utils.ParseToken(tokenStr)

@@ -4,7 +4,7 @@ package services
  * @Author: xiaozuhui
  * @Date: 2022-10-31 15:53:19
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-01 08:38:32
+ * @LastEditTime: 2022-11-02 09:30:42
  * @Description:
  */
 
@@ -24,21 +24,23 @@ type Token struct {
 }
 
 type User struct {
-	UUID        uuid.UUID `json:"id"`
-	NickName    string    `json:"nickname"`
-	PhoneNumber string    `json:"phone_number"`
-	Gender      string    `json:"gender"`
-	LastLogin   time.Time `json:"last_login"`
-	Avatar      string    `json:"avatar"`
+	UUID         uuid.UUID `json:"id"`
+	NickName     string    `json:"nickname"`
+	PhoneNumber  string    `json:"phone_number"`
+	Gender       string    `json:"gender"`
+	Introduction string    `json:"introduction"`
+	Avatar       string    `json:"avatar"`
+	LastLogin    time.Time `json:"last_login"`
 }
 
 func MakeUser(userEntity entities.UserEntity) (*User, error) {
 	user := User{
-		UUID:        userEntity.UUID,
-		NickName:    userEntity.NickName,
-		PhoneNumber: userEntity.PhoneNumber,
-		Gender:      string(userEntity.Gender),
-		LastLogin:   userEntity.LastLogin,
+		UUID:         userEntity.UUID,
+		NickName:     userEntity.NickName,
+		PhoneNumber:  userEntity.PhoneNumber,
+		Gender:       string(userEntity.Gender),
+		LastLogin:    userEntity.LastLogin,
+		Introduction: userEntity.Introduction,
 	}
 	// 查询redis中是否有对应的文件url
 	avatarURL, err := utils.RedisStrGet(fmt.Sprintf("%s-avatar_url", userEntity.PhoneNumber))

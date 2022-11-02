@@ -4,7 +4,7 @@ package controllers
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:33:56
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-10-31 14:18:25
+ * @LastEditTime: 2022-11-02 15:59:05
  * @Description:
  */
 
@@ -13,8 +13,9 @@ import (
 	"chatshock/middlewares"
 	"chatshock/services"
 	"chatshock/utils"
-	"github.com/pkg/errors"
 	"log"
+
+	"github.com/pkg/errors"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,7 +40,13 @@ func (e *UserController) Router(engine *gin.Engine) {
 	accountGroup.PUT("/:id/reset_password", e.ResetPassword)   // 找回密码
 }
 
-// Register 注册用户
+// Register
+/**
+ * @description: 注册用户
+ * @param {*gin.Context} c
+ * @return {*}
+ * @author: xiaozuhui
+ */
 func (e *UserController) Register(c *gin.Context) {
 	userParam := struct {
 		NickName    string `json:"nickname"`
@@ -63,32 +70,78 @@ func (e *UserController) Register(c *gin.Context) {
 	c.JSON(200, userInfo)
 }
 
-// CheckValidCode 检查验证码
+// CheckValidCode
+/**
+ * @description: 检查验证码
+ * @param {*gin.Context} c
+ * @return {*}
+ * @author: xiaozuhui
+ */
 func (e *UserController) CheckValidCode(c *gin.Context) {
-
+	userAuth := struct {
+		PhoneNumber string `json:"phone_number"`
+		ValidCode   string `json:"valid_code"`
+	}{}
+	err := c.Bind(&userAuth)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	err = utils.CheckValidCode(userAuth.PhoneNumber, userAuth.ValidCode)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	c.JSON(200, gin.H{"code": 1, "msg": "验证通过"})
 }
 
+// Login
+/**
+ * @description: 使用密码登录
+ * @param {*gin.Context} c
+ * @return {*}
+ * @author: xiaozuhui
+ */
 func (e *UserController) Login(c *gin.Context) {
-
+	userAuth := struct {
+		PhoneNumber string `json:"phone_number"`
+		Password    string `json:"password"`
+	}{}
+	err := c.Bind(&userAuth)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
 }
 
+// LoginByPhoneNumber
+/**
+ * @description: 使用手机号登录
+ * @param {*gin.Context} c
+ * @return {*}
+ * @author: xiaozuhui
+ */
 func (e *UserController) LoginByPhoneNumber(c *gin.Context) {
 
 }
 
-// PhoneNumber 手机号验证且发送验证码
+// PhoneNumber
+/**
+ * @description: 手机号验证且发送验证码
+ * @param {*gin.Context} c
+ * @return {*}
+ * @author: xiaozuhui
+ */
 func (e *UserController) PhoneNumber(c *gin.Context) {
 	userAuth := struct {
 		PhoneNumber string `json:"phone_number"`
 	}{}
 	err := c.Bind(&userAuth)
 	if err != nil {
-		c.JSON(403, gin.H{
-			"code": -1,
-			"msg":  "参数错误",
-			"data": nil,
-		})
-		return
+		panic(errors.WithStack(err))
+	}
+	// 检查该手机号是否已经注册
+	userService := services.UserFactory()
+	_, err = userService.GetUserByPhoneNumber(userAuth.PhoneNumber)
+	if err != nil {
+		panic(errors.WithStack(err))
 	}
 	// 生成验证码
 	validCode := utils.GenerateValidCode(utils.RegisterOrLogin)
