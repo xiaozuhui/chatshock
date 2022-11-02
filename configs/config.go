@@ -2,6 +2,8 @@ package configs
 
 import (
 	"fmt"
+
+	smsapi "github.com/alibabacloud-go/dysmsapi-20170525/v3/client"
 	"github.com/go-redis/redis/v8"
 	"github.com/minio/minio-go/v7"
 	"github.com/spf13/viper"
@@ -13,6 +15,7 @@ var (
 	RedisClient *redis.Client
 	Conf        *Config
 	MinioClient *minio.Client
+	SMSClient   *smsapi.Client
 )
 
 type Config struct {
@@ -87,11 +90,11 @@ func (c *Config) Parse(viper *viper.Viper) {
 	c.RedisConfig.RedisPort = viper.GetInt("redis.redis_port")
 	// 解析手机验证配置
 	c.PhoneValidConfig = &PhoneValidConfig{}
-	c.PhoneValidConfig.Host = viper.GetString("phone_valid.host")
-	c.PhoneValidConfig.AppKey = viper.GetString("phone_valid.app_key")
-	c.PhoneValidConfig.AppSecret = viper.GetString("phone_valid.app_secret")
-	c.PhoneValidConfig.TemplateCode = viper.GetString("phone_valid.template_code")
-	c.PhoneValidConfig.SignName = viper.GetString("phone_valid.sign_name")
+	c.PhoneValidConfig.Host = viper.GetString("phone.host")
+	c.PhoneValidConfig.AppKey = viper.GetString("phone.app_key")
+	c.PhoneValidConfig.AppSecret = viper.GetString("phone.app_secret")
+	c.PhoneValidConfig.TemplateCode = viper.GetString("phone.template_code")
+	c.PhoneValidConfig.SignName = viper.GetString("phone.sign_name")
 	// 解析minio
 	c.MinioConfig = &MinioConfig{}
 	c.MinioConfig.EndPoint = viper.GetString("minio.end_point")
