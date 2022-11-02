@@ -1,3 +1,5 @@
+package main
+
 /*
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:17:18
@@ -5,7 +7,6 @@
  * @LastEditTime: 2022-10-31 11:06:44
  * @Description: 初始化各种配置
  */
-package main
 
 import (
 	"chatshock/configs"
@@ -27,6 +28,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// InitDatabase
 /**
  * @description: 初始化数据库
  * @return {*}
@@ -53,6 +55,7 @@ func InitDatabase() {
 	fmt.Println("初始化数据库结束.")
 }
 
+// InitConfig
 /**
  * @description: 初始化配置，获取并解析configs中的配置文件
  * @param {string} configVersion
@@ -77,6 +80,7 @@ func InitConfig(configVersion string) *configs.Config {
 	return configs.Conf
 }
 
+// InitRedis
 /**
  * @description: 初始化redis
  * @return {*}
@@ -97,6 +101,7 @@ func InitRedis() *redis.Client {
 	return configs.RedisClient
 }
 
+// InitMinioClient
 /**
  * @description: 初始化minio，并获取其client
  * @return {*}
@@ -116,6 +121,7 @@ func InitMinioClient() *minio.Client {
 	return configs.MinioClient
 }
 
+// InitSmsClient
 /**
  * @description:  初始化短信工具，并获取其SMSClient
  * @return {*}

@@ -49,6 +49,10 @@ func (s UserService) Register(userEntity entities.UserEntity) (*UserInfo, error)
 	if err != nil {
 		return nil, err
 	}
+	err = utils.MakeBucket(userEntity.PhoneNumber)
+	if err != nil {
+		return nil, err
+	}
 	uploadInfo, err := utils.UploadImage(userEntity.PhoneNumber, userEntity.PhoneNumber+"_avatar.png", img)
 	if err != nil {
 		return nil, err

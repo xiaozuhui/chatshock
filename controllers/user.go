@@ -13,6 +13,7 @@ import (
 	"chatshock/middlewares"
 	"chatshock/services"
 	"chatshock/utils"
+	"github.com/gofrs/uuid"
 	"log"
 
 	"github.com/pkg/errors"
@@ -109,6 +110,21 @@ func (e *UserController) Login(c *gin.Context) {
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
+	userService := services.UserFactory()
+	// 1、检查账号密码
+	isCheck, err := userService.CheckPassword(userAuth.PhoneNumber, userAuth.Password)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	if !isCheck {
+		panic(errors.WithStack(errors.New("密码错误")))
+	}
+	// 2、登录，返回用户信息和token
+	userInfo, err := userService.Login(userAuth.PhoneNumber)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	c.JSON(200, userInfo)
 }
 
 // LoginByPhoneNumber
@@ -119,7 +135,24 @@ func (e *UserController) Login(c *gin.Context) {
  * @author: xiaozuhui
  */
 func (e *UserController) LoginByPhoneNumber(c *gin.Context) {
-
+	userAuth := struct {
+		PhoneNumber string `json:"phone_number"`
+		ValidCode   string `json:"valid_code"`
+	}{}
+	err := c.Bind(&userAuth)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	err = utils.CheckValidCode(userAuth.PhoneNumber, userAuth.ValidCode)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	userService := services.UserFactory()
+	userInfo, err := userService.Login(userAuth.PhoneNumber)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	c.JSON(200, userInfo)
 }
 
 // PhoneNumber
@@ -160,15 +193,66 @@ func (e *UserController) PhoneNumber(c *gin.Context) {
 }
 
 func (e *UserController) GetAccount(c *gin.Context) {
-
+	id := c.Param("id")
+	UUID, err := uuid.FromString(id)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	userService := services.UserFactory()
+	user, err := userService.GetUser(UUID)
+	c.JSON(200, user)
 }
 
+// TODO 暂时不允许修改账号信息
 func (e *UserController) UpdateAccount(c *gin.Context) {
+	//id := c.Param("id")
+	//UUID, err := uuid.FromString(id)
+	//if err != nil {
+	//	panic(errors.WithStack(err))
+	//}
+	//userParam := struct {
+	//	NickName string `json:"nickname"`
+	//	Gender   string `json:"gender"`
+	//}{}
 
 }
 
+// UpdateAvatar 修改头像
 func (e *UserController) UpdateAvatar(c *gin.Context) {
-
+	id := c.Param("id")
+	UUID, err := uuid.FromString(id)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	avatar, err := c.FormFile("avatar")
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	userService := services.UserFactory()
+	user, err := userService.GetUser(UUID)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	imgInfo, err := utils.UploadFiles(user.PhoneNumber, avatar.Filename, avatar)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	userEntity := entities.UserEntity{
+		BaseEntity: entities.BaseEntity{
+			UUID: user.UUID,
+		},
+		PhoneNumber: user.PhoneNumber,
+		Avatar:      imgInfo.Key,
+	}
+	err = userService.UpdateAccount(&userEntity)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	user, err = userService.GetUser(UUID)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	c.JSON(200, user)
 }
 
 func (e *UserController) RebindPhoneNumber(c *gin.Context) {

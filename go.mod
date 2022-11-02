@@ -13,7 +13,7 @@ require (
 	gorm.io/gorm v1.24.1-0.20221019064659-5dd2bb482755
 )
 
-require github.com/issue9/identicon/v2 v2.1.1 // indirect
+require github.com/issue9/identicon/v2 v2.1.1
 
 require (
 	github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.4 // indirect
