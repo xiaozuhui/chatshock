@@ -4,7 +4,7 @@ package controllers
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:33:56
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-02 15:59:05
+ * @LastEditTime: 2022-11-03 08:54:09
  * @Description:
  */
 
@@ -13,8 +13,9 @@ import (
 	"chatshock/middlewares"
 	"chatshock/services"
 	"chatshock/utils"
-	"github.com/gofrs/uuid"
 	"log"
+
+	"github.com/gofrs/uuid"
 
 	"github.com/pkg/errors"
 
@@ -200,20 +201,14 @@ func (e *UserController) GetAccount(c *gin.Context) {
 	}
 	userService := services.UserFactory()
 	user, err := userService.GetUser(UUID)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
 	c.JSON(200, user)
 }
 
 // TODO 暂时不允许修改账号信息
 func (e *UserController) UpdateAccount(c *gin.Context) {
-	//id := c.Param("id")
-	//UUID, err := uuid.FromString(id)
-	//if err != nil {
-	//	panic(errors.WithStack(err))
-	//}
-	//userParam := struct {
-	//	NickName string `json:"nickname"`
-	//	Gender   string `json:"gender"`
-	//}{}
 
 }
 
