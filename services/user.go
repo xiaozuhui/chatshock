@@ -4,7 +4,7 @@ package services
  * @Author: xiaozuhui
  * @Date: 2022-10-31 15:20:26
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-02 09:42:06
+ * @LastEditTime: 2022-11-04 11:49:40
  * @Description:
  */
 
@@ -20,7 +20,7 @@ import (
 )
 
 type UserService struct {
-	UserRepo interfaces.IUser
+	userRepo interfaces.IUser
 }
 
 func UserFactory() UserService {
@@ -40,7 +40,7 @@ func (s UserService) Register(userEntity entities.UserEntity) (*UserInfo, error)
 	if userEntity.PhoneNumber == "" {
 		return nil, errors.New("手机号码不能为空")
 	}
-	_, err := s.UserRepo.FindUserByPhoneNumber(userEntity.PhoneNumber)
+	_, err := s.userRepo.FindUserByPhoneNumber(userEntity.PhoneNumber)
 	if err != gorm.ErrRecordNotFound {
 		return nil, errors.New("该手机号码已经被注册")
 	}
@@ -58,7 +58,7 @@ func (s UserService) Register(userEntity entities.UserEntity) (*UserInfo, error)
 		return nil, err
 	}
 	userEntity.Avatar = uploadInfo.Key
-	ue, err := s.UserRepo.CreateUser(userEntity)
+	ue, err := s.userRepo.CreateUser(userEntity)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (s UserService) Register(userEntity entities.UserEntity) (*UserInfo, error)
  * @author: xiaozuhui
  */
 func (s UserService) CheckPassword(phoneNumber string, password string) (bool, error) {
-	user, err := s.UserRepo.FindUserByPhoneNumber(phoneNumber)
+	user, err := s.userRepo.FindUserByPhoneNumber(phoneNumber)
 	if err != nil {
 		return false, err
 	}
@@ -110,7 +110,7 @@ func (s UserService) CheckPassword(phoneNumber string, password string) (bool, e
  * @author: xiaozuhui
  */
 func (s UserService) Login(phoneNumber string) (*UserInfo, error) {
-	userEntity, err := s.UserRepo.FindUserByPhoneNumber(phoneNumber)
+	userEntity, err := s.userRepo.FindUserByPhoneNumber(phoneNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (s UserService) Login(phoneNumber string) (*UserInfo, error) {
 		return nil, err
 	}
 	// 更新user的login时间
-	err = s.UserRepo.UpdateLastLogin(userEntity.UUID)
+	err = s.userRepo.UpdateLastLogin(userEntity.UUID)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (s UserService) Login(phoneNumber string) (*UserInfo, error) {
  * @author: xiaozuhui
  */
 func (s UserService) GetUserByPhoneNumber(phoneNumber string) (*User, error) {
-	user, err := s.UserRepo.FindUserByPhoneNumber(phoneNumber)
+	user, err := s.userRepo.FindUserByPhoneNumber(phoneNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func (s UserService) GetUserByPhoneNumber(phoneNumber string) (*User, error) {
  * @author: xiaozuhui
  */
 func (s UserService) GetUser(userID uuid.UUID) (*User, error) {
-	user, err := s.UserRepo.FindUser(userID)
+	user, err := s.userRepo.FindUser(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -186,6 +186,6 @@ func (s UserService) GetUser(userID uuid.UUID) (*User, error) {
  * @author: xiaozuhui
  */
 func (s UserService) UpdateAccount(userEntity *entities.UserEntity) error {
-	err := s.UserRepo.UpdateAccount(*userEntity)
+	err := s.userRepo.UpdateAccount(*userEntity)
 	return err
 }

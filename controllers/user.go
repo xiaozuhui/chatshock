@@ -4,7 +4,7 @@ package controllers
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:33:56
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-03 08:54:09
+ * @LastEditTime: 2022-11-04 13:22:12
  * @Description:
  */
 
@@ -193,6 +193,13 @@ func (e *UserController) PhoneNumber(c *gin.Context) {
 	c.JSON(200, gin.H{"code": 1, "msg": "已发送验证码"})
 }
 
+// GetAccount
+/**
+ * @description: 获取账号信息
+ * @param {*gin.Context} c
+ * @return {*}
+ * @author: xiaozuhui
+ */
 func (e *UserController) GetAccount(c *gin.Context) {
 	id := c.Param("id")
 	UUID, err := uuid.FromString(id)
@@ -207,9 +214,50 @@ func (e *UserController) GetAccount(c *gin.Context) {
 	c.JSON(200, user)
 }
 
-// TODO 暂时不允许修改账号信息
+// UpdateAccount
+/**
+ * @description:  修改一些基本信息
+                  目前可修改：
+				  	  1、NickName
+					  2、Introduction
+					  3、Gender
+ * @param {*gin.Context}
+ * @return {*}
+ * @author: xiaozuhui
+*/
 func (e *UserController) UpdateAccount(c *gin.Context) {
-
+	id := c.Param("id")
+	UUID, err := uuid.FromString(id)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	userParam := struct {
+		NickName     string `json:"nickname"`     // 昵称
+		Introduction string `json:"introduction"` // 介绍
+		Gender       string `json:"gender"`       // 性别
+	}{}
+	err = c.Bind(&userParam)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	userService := services.UserFactory()
+	_, err = userService.GetUser(UUID)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	userEntity := entities.UserEntity{
+		BaseEntity: entities.BaseEntity{
+			UUID: UUID,
+		},
+		NickName:     userParam.NickName,
+		Introduction: userParam.Introduction,
+		Gender:       entities.GenderTypeStr(userParam.Gender),
+	}
+	err = userService.UpdateAccount(&userEntity)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	c.JSON(200, gin.H{})
 }
 
 // UpdateAvatar 修改头像

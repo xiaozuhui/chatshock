@@ -1,11 +1,12 @@
+package models
+
 /*
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:17:18
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-02 09:29:43
+ * @LastEditTime: 2022-11-04 13:35:13
  * @Description:
  */
-package models
 
 import (
 	"chatshock/entities"
