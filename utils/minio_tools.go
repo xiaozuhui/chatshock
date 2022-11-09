@@ -104,7 +104,7 @@ func UploadImage(bucketName, objectName string, img *os.File) (*minio.UploadInfo
  */
 func GetFileUrl(bucketName, objectName string) (*url.URL, error) {
 	ctx := context.Background()
-	expires := time.Second * 24 * 60 * 60
+	expires := time.Second * 24 * 60 * 60 * 30
 	_url, err := configs.MinioClient.PresignedGetObject(ctx, bucketName, objectName, expires, url.Values{})
 	if err != nil {
 		return nil, err

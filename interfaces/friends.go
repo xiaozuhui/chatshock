@@ -22,9 +22,11 @@ type IFriend interface {
 	// GetUnBindFriends 获取该用户的好友中已经删除该用户的其他用户
 	GetUnBindFriends(userID uuid.UUID) ([]*entities.FriendsEntity, error)
 	// IsBindFriend 判断某个用户是否是该用户的绑定用户
-	IsBindFriend(userID, otherID uuid.UUID) (bool, error)
-	// AddFriend 添加用户（比如该用户删了对方，但对方没有删，可以用这个加回来）
+	IsBindFriend(userID, otherID uuid.UUID) (bool, bool, bool, error)
+	// AddFriend 添加用户，双方添加
 	AddFriend(userID, otherID uuid.UUID) error
+	// AddSideFriend 添加用户（比如该用户删了对方，但对方没有删，可以用这个加回来）
+	AddSideFriend(userID, otherID uuid.UUID) error
 	// DeleteFriend 单方面删除other用户的好友
 	DeleteFriend(userID, otherID uuid.UUID) error
 }

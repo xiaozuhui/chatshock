@@ -4,7 +4,7 @@ package models
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:17:18
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-04 13:35:13
+ * @LastEditTime: 2022-11-09 13:33:17
  * @Description:
  */
 
@@ -24,7 +24,7 @@ type UserModel struct {
 	Gender       entities.GenderType `json:"gender" gorm:"type:char(50)"`                             // 性别
 }
 
-func (m *UserModel) ModelToEntity() *entities.UserEntity {
+func (m UserModel) ModelToEntity() interface{} {
 	userEntity := &entities.UserEntity{}
 	baseEntity := m.BaseModel.ModelToEntity()
 	userEntity.BaseEntity = *baseEntity
@@ -50,3 +50,5 @@ func EntityToUserModel(e *entities.UserEntity) *UserModel {
 	m.Introduction = e.Introduction
 	return m
 }
+
+var _ IModel = UserModel{}

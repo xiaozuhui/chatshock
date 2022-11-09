@@ -4,7 +4,7 @@ package repositories
  * @Author: xiaozuhui
  * @Date: 2022-10-28 14:25:14
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-10-31 22:39:58
+ * @LastEditTime: 2022-11-09 13:35:42
  * @Description:
  */
 
@@ -36,8 +36,27 @@ func (u UserRepo) FindUser(ID uuid.UUID) (*entities.UserEntity, error) {
 	if err != nil {
 		return nil, err
 	}
-	ent := user.ModelToEntity()
+	ent := user.ModelToEntity().(*entities.UserEntity)
 	return ent, nil
+}
+
+func (u UserRepo) FindUsers(IDs []uuid.UUID) ([]*entities.UserEntity, error) {
+	var users []models.UserModel
+	iUsers := make([]models.IModel, 0)
+	res := make([]*entities.UserEntity, 0)
+
+	err := configs.DBEngine.Where("id IN (?)", IDs).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, friend := range users {
+		iUsers = append(iUsers, friend)
+	}
+	us := models.DBs(iUsers)
+	for _, f := range us {
+		res = append(res, f.(*entities.UserEntity))
+	}
+	return res, nil
 }
 
 // FindUserByPhoneNumber
@@ -53,7 +72,7 @@ func (u UserRepo) FindUserByPhoneNumber(phoneNumber string) (*entities.UserEntit
 	if err != nil {
 		return nil, err
 	}
-	ent := user.ModelToEntity()
+	ent := user.ModelToEntity().(*entities.UserEntity)
 	return ent, nil
 }
 
@@ -65,7 +84,13 @@ func (u UserRepo) FindUserByPhoneNumber(phoneNumber string) (*entities.UserEntit
  * @author: xiaozuhui
  */
 func (u UserRepo) DeleteUser(ID uuid.UUID) error {
-	return nil
+	var user models.UserModel
+	err := configs.DBEngine.First(&user, "uuid = ?", ID).Error
+	if err != nil {
+		return err
+	}
+	err = configs.DBEngine.Delete(&user).Error
+	return err
 }
 
 // CreateUser
@@ -96,7 +121,7 @@ func (u UserRepo) CreateUser(userEntity entities.UserEntity) (*entities.UserEnti
 	if err != nil {
 		return nil, err
 	}
-	e := user.ModelToEntity()
+	e := user.ModelToEntity().(*entities.UserEntity)
 	return e, nil
 }
 

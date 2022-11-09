@@ -4,7 +4,7 @@ package interfaces
  * @Author: xiaozuhui
  * @Date: 2022-10-31 11:11:11
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-10-31 14:58:54
+ * @LastEditTime: 2022-11-09 13:38:58
  * @Description:
  */
 
@@ -17,6 +17,8 @@ import (
 type IUser interface {
 	// FindUser 根据id获取员工
 	FindUser(ID uuid.UUID) (*entities.UserEntity, error)
+	// FindUsers 根据ids获取员工
+	FindUsers(IDs []uuid.UUID) ([]*entities.UserEntity, error)
 	// FindUserByPhoneNumber 根据手机号码获取员工
 	FindUserByPhoneNumber(phoneNumber string) (*entities.UserEntity, error)
 	// DeleteUser 删除账号

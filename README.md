@@ -1,3 +1,10 @@
+<!--
+ * @Author: xiaozuhui
+ * @Date: 2022-11-03 14:21:44
+ * @LastEditors: xiaozuhui
+ * @LastEditTime: 2022-11-09 08:17:11
+ * @Description: 
+-->
 # chat-shock
 
 聊天工具后端代码
@@ -28,3 +35,4 @@
 - [ ] 健壮日志接入
 - [ ] 日志管理
 - [ ] 接入CI/CD
+- [ ] 消息系统
