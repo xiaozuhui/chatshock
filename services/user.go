@@ -4,7 +4,7 @@ package services
  * @Author: xiaozuhui
  * @Date: 2022-10-31 15:20:26
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-04 11:49:40
+ * @LastEditTime: 2022-11-10 10:36:56
  * @Description:
  */
 
@@ -176,6 +176,29 @@ func (s UserService) GetUser(userID uuid.UUID) (*User, error) {
 		return nil, err
 	}
 	return user_, nil
+}
+
+// GetUsers
+/**
+ * @description: 根据id批量获取用户
+ * @param {[]uuid.UUID} userIDs
+ * @return {*}
+ * @author: xiaozuhui
+ */
+func (s UserService) GetUsers(userIDs []uuid.UUID) ([]*User, error) {
+	userEntities, err := s.userRepo.FindUsers(userIDs)
+	if err != nil {
+		return nil, err
+	}
+	users := make([]*User, 0, len(userEntities))
+	for _, userEntity := range userEntities {
+		user_, err := MakeUser(*userEntity)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user_)
+	}
+	return users, nil
 }
 
 // UpdateAccount

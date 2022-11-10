@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"chatshock/applications"
 	"chatshock/middlewares"
 	"chatshock/services"
 
@@ -35,8 +36,8 @@ func (e *FriendController) GetFriends(c *gin.Context) {
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
-	friendService := services.FriendFactory()
-	friends, err := friendService.GetFriends(UUID)
+	application := applications.NewFriendApplication()
+	friends, err := application.GetFriends(UUID)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}

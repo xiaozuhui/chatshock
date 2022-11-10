@@ -5,9 +5,10 @@ import (
 	"chatshock/repositories"
 	"chatshock/utils"
 	"fmt"
-	"github.com/pkg/errors"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/gofrs/uuid"
 )
@@ -22,17 +23,22 @@ import (
 
 type FriendService struct {
 	friendRepo interfaces.IFriend
-	userRepo   interfaces.IUser
 }
 
 func FriendFactory() FriendService {
 	fr := repositories.FriendRepo{}
-	ur := repositories.UserRepo{}
-	fs := FriendService{fr, ur}
+	fs := FriendService{fr}
 	return fs
 }
 
-func (s FriendService) GetFriends(userID uuid.UUID) ([]*User, error) {
+// GetFriends
+/**
+ * @description: 获取所有的好友
+ * @param {uuid.UUID} userID
+ * @return {[]uuid.UUID, error} 所有好友的uuid
+ * @author: xiaozuhui
+ */
+func (s FriendService) GetFriends(userID uuid.UUID) ([]uuid.UUID, error) {
 	friends, err := s.friendRepo.GetFriends(userID)
 	if err != nil {
 		return nil, err
@@ -41,22 +47,47 @@ func (s FriendService) GetFriends(userID uuid.UUID) ([]*User, error) {
 	for _, friend := range friends {
 		otherIDs = append(otherIDs, friend.OtherUUID)
 	}
-	otherUsers, err := s.userRepo.FindUsers(otherIDs)
-	if err != nil {
-		return nil, err
-	}
-	res := make([]*User, 0)
-	for _, otherUser := range otherUsers {
-		user, err := MakeUser(*otherUser)
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, user)
-	}
-	return res, nil
+	return otherIDs, nil
 }
 
-// AddFriend 发送加好友申请
+// GetBindFriends
+/**
+ * @description: 获取不同类型的好友
+ * @param {uuid.UUID} userID
+ * @return {[]uuid.UUID, []uuid.UUID, error} 1、是双向绑定的好友；2、是对方已经删除该用户的好友
+ * @author: xiaozuhui
+ */
+func (s FriendService) GetBindFriends(userID uuid.UUID) ([]uuid.UUID, []uuid.UUID, error) {
+	bindFriends, err := s.friendRepo.GetBindFriends(userID)
+	if err != nil {
+		return nil, nil, err
+	}
+	unBindFriends, err := s.friendRepo.GetUnBindFriends(userID)
+	if err != nil {
+		return nil, nil, err
+	}
+	bindUUID := make([]uuid.UUID, 0, len(bindFriends))
+	unbindUUID := make([]uuid.UUID, 0, len(unBindFriends))
+	for _, bindFriend := range bindFriends {
+		bindUUID = append(bindUUID, bindFriend.OtherUUID)
+	}
+	for _, unBindFriend := range unBindFriends {
+		unbindUUID = append(unbindUUID, unBindFriend.OtherUUID)
+	}
+	return bindUUID, unbindUUID, nil
+}
+
+// AddFriend
+/**
+* @description: 发送加好友申请
+             	1、首先判断是否已经是好友
+            	2、判断redis中是不是已经有相同的key
+				3、在redis中塞入相关数据，保留7天
+* @param {uuid.UUID} userID
+* @param {uuid.UUID} otherID
+* @return {error}
+* @author: xiaozuhui
+*/
 func (s FriendService) AddFriend(userID, otherID uuid.UUID) error {
 	// 1、首先判断是否已经是好友
 	isBind, isFriend, isFriended, err := s.friendRepo.IsBindFriend(userID, otherID)
@@ -97,7 +128,14 @@ func (s FriendService) DeleteFriend(userID, otherID uuid.UUID) error {
 	return err
 }
 
-// ApplyFriend 同意申请
+// ApplyFriend
+/**
+ * @description: 同意申请
+ * @param {uuid.UUID} userID
+ * @param {uuid.UUID} otherID
+ * @return {error}
+ * @author: xiaozuhui
+ */
 func (s FriendService) ApplyFriend(userID, otherID uuid.UUID) error {
 	// 1、根据userID查找redis中的申请
 	get_, err := utils.RedisStrGet(fmt.Sprintf("%s-af-%s", userID, otherID))
