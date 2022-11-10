@@ -21,7 +21,6 @@ func main() {
 	flag.StringVar(&configVersion, "c", "dev", "请输入配置版本(dev,product,)")
 	flag.Parse()
 	r := gin.Default()
-	r.Use(gin.Recovery())
 	InitConfig(configVersion)
 	InitDatabase()
 	InitRedis()
