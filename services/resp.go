@@ -11,7 +11,6 @@ package services
 import (
 	"chatshock/entities"
 	"chatshock/utils"
-	"fmt"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -42,21 +41,18 @@ func MakeUser(userEntity entities.UserEntity) (*User, error) {
 		LastLogin:    userEntity.LastLogin,
 		Introduction: userEntity.Introduction,
 	}
-	// 查询redis中是否有对应的文件url
-	avatarURL, err := utils.RedisStrGet(fmt.Sprintf("%s-avatar_url", userEntity.PhoneNumber))
-	if err != nil {
-		return nil, err
-	}
-	if avatarURL != nil {
-		user.Avatar = *avatarURL
-		return &user, nil
-	}
 	// 如果没有就从minio中获取
-	url, err := utils.GetFileUrl(userEntity.PhoneNumber, userEntity.Avatar)
-	if err != nil {
-		return nil, err
+	if userEntity.Avatar == nil ||
+		userEntity.Avatar.FileURL == "" ||
+		time.Now().After(*userEntity.Avatar.URLExpireTime) {
+		url, err := utils.GetFileUrl(userEntity.PhoneNumber, userEntity.PhoneNumber+"_avatar.png")
+		if err != nil {
+			return nil, err
+		}
+		user.Avatar = url.String()
+	} else {
+		user.Avatar = userEntity.Avatar.FileURL
 	}
-	user.Avatar = url.String()
 	return &user, nil
 }
 

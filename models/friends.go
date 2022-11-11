@@ -12,6 +12,7 @@ package models
 */
 
 import (
+	"chatshock/custom"
 	"chatshock/entities"
 
 	"github.com/gofrs/uuid"
@@ -57,4 +58,4 @@ func EntityToFriendModel(e *entities.FriendsEntity) *FriendsModel {
 	return m
 }
 
-var _ IModel = FriendsModel{}
+var _ custom.IModel = FriendsModel{}

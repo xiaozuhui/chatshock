@@ -10,6 +10,7 @@ package repositories
 
 import (
 	"chatshock/configs"
+	"chatshock/custom"
 	"chatshock/entities"
 	"chatshock/interfaces"
 	"chatshock/models"
@@ -42,7 +43,7 @@ func (u UserRepo) FindUser(ID uuid.UUID) (*entities.UserEntity, error) {
 
 func (u UserRepo) FindUsers(IDs []uuid.UUID) ([]*entities.UserEntity, error) {
 	var users []models.UserModel
-	iUsers := make([]models.IModel, 0)
+	iUsers := make([]custom.IModel, 0)
 	res := make([]*entities.UserEntity, 0)
 
 	err := configs.DBEngine.Where("id IN (?)", IDs).Find(&users).Error
@@ -52,7 +53,7 @@ func (u UserRepo) FindUsers(IDs []uuid.UUID) ([]*entities.UserEntity, error) {
 	for _, friend := range users {
 		iUsers = append(iUsers, friend)
 	}
-	us := models.DBs(iUsers)
+	us := custom.DBs(iUsers)
 	for _, f := range us {
 		res = append(res, f.(*entities.UserEntity))
 	}
@@ -176,8 +177,8 @@ func (u UserRepo) UpdateAccount(userEntity entities.UserEntity) error {
 		}
 		userModel.Password = pass
 	}
-	if userEntity.Avatar != "" {
-		userModel.Avatar = userEntity.Avatar
+	if userEntity.Avatar != nil {
+		userModel.Avatar = models.EntityToFileModel(userEntity.Avatar)
 	}
 	err = configs.DBEngine.Model(&userModel).Save(&userModel).Error
 	if err != nil {

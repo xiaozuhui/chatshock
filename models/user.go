@@ -9,6 +9,7 @@ package models
  */
 
 import (
+	"chatshock/custom"
 	"chatshock/entities"
 	"time"
 )
@@ -18,10 +19,10 @@ type UserModel struct {
 	NickName     string              `json:"nickname" gorm:"type:char(512)"`                          // nickname 即昵称
 	Password     string              `json:"password" gorm:"type:char(512)"`                          // 密码
 	PhoneNumber  string              `json:"phone_number" gorm:"type:char(11);unique_index;not null"` // 手机号码将作为唯一标识
-	Avatar       string              `json:"avatar" gorm:"type:char(512)"`                            // 头像可能即存文件名称
+	Avatar       *FileModel          `json:"avatar"`                                                  // 头像可能即存文件名称
 	Introduction string              `json:"introduction" gorm:"type:char(1024)"`                     // 自我介绍
 	LastLogin    time.Time           `json:"last_login"`                                              // 最后一次登录
-	Gender       entities.GenderType `json:"gender" gorm:"type:char(50)"`                             // 性别
+	Gender       entities.GenderType `json:"gender" gorm:"type:integer"`                              // 性别
 }
 
 func (m UserModel) ModelToEntity() interface{} {
@@ -31,7 +32,7 @@ func (m UserModel) ModelToEntity() interface{} {
 	userEntity.NickName = m.NickName
 	userEntity.PhoneNumber = m.PhoneNumber
 	userEntity.LastLogin = m.LastLogin
-	userEntity.Avatar = m.Avatar
+	userEntity.Avatar = m.Avatar.ModelToEntity().(*entities.FileEntity)
 	userEntity.Password = m.Password
 	userEntity.Gender = m.Gender.ParseGenderType()
 	userEntity.Introduction = m.Introduction
@@ -45,10 +46,10 @@ func EntityToUserModel(e *entities.UserEntity) *UserModel {
 	m.Password = e.Password
 	m.PhoneNumber = e.PhoneNumber
 	m.LastLogin = e.LastLogin
-	m.Avatar = e.Avatar
+	m.Avatar = EntityToFileModel(e.Avatar)
 	m.Gender = e.Gender.ParseGenderStr()
 	m.Introduction = e.Introduction
 	return m
 }
 
-var _ IModel = UserModel{}
+var _ custom.IModel = UserModel{}

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"chatshock/configs"
+	"chatshock/custom"
 	"chatshock/entities"
 	"chatshock/interfaces"
 	"chatshock/models"
@@ -29,7 +30,7 @@ type FriendRepo struct {
  */
 func (f FriendRepo) GetFriends(userID uuid.UUID) ([]*entities.FriendsEntity, error) {
 	var friends []models.FriendsModel
-	iFriends := make([]models.IModel, 0)
+	iFriends := make([]custom.IModel, 0)
 	res := make([]*entities.FriendsEntity, 0)
 
 	err := configs.DBEngine.Where("user_id = ?", userID).Find(&friends).Error
@@ -39,7 +40,7 @@ func (f FriendRepo) GetFriends(userID uuid.UUID) ([]*entities.FriendsEntity, err
 	for _, friend := range friends {
 		iFriends = append(iFriends, friend)
 	}
-	fs := models.DBs(iFriends)
+	fs := custom.DBs(iFriends)
 	for _, f := range fs {
 		res = append(res, f.(*entities.FriendsEntity))
 	}
@@ -55,7 +56,7 @@ func (f FriendRepo) GetFriends(userID uuid.UUID) ([]*entities.FriendsEntity, err
  */
 func (f FriendRepo) GetBindFriends(userID uuid.UUID) ([]*entities.FriendsEntity, error) {
 	var friends []models.FriendsModel
-	iFriends := make([]models.IModel, 0)
+	iFriends := make([]custom.IModel, 0)
 	res := make([]*entities.FriendsEntity, 0)
 
 	err := configs.DBEngine.Raw(
@@ -72,7 +73,7 @@ func (f FriendRepo) GetBindFriends(userID uuid.UUID) ([]*entities.FriendsEntity,
 	for _, friend := range friends {
 		iFriends = append(iFriends, friend)
 	}
-	fs := models.DBs(iFriends)
+	fs := custom.DBs(iFriends)
 	for _, f := range fs {
 		res = append(res, f.(*entities.FriendsEntity))
 	}
@@ -88,7 +89,7 @@ func (f FriendRepo) GetBindFriends(userID uuid.UUID) ([]*entities.FriendsEntity,
  */
 func (f FriendRepo) GetUnBindFriends(userID uuid.UUID) ([]*entities.FriendsEntity, error) {
 	var friends []models.FriendsModel
-	iFriends := make([]models.IModel, 0)
+	iFriends := make([]custom.IModel, 0)
 	res := make([]*entities.FriendsEntity, 0)
 
 	err := configs.DBEngine.Raw(
@@ -107,7 +108,7 @@ func (f FriendRepo) GetUnBindFriends(userID uuid.UUID) ([]*entities.FriendsEntit
 	for _, friend := range friends {
 		iFriends = append(iFriends, friend)
 	}
-	fs := models.DBs(iFriends)
+	fs := custom.DBs(iFriends)
 	for _, f := range fs {
 		res = append(res, f.(*entities.FriendsEntity))
 	}
@@ -215,7 +216,7 @@ func (f FriendRepo) AddSideFriend(userID, otherID uuid.UUID) error {
  * @author: xiaozuhui
  */
 func (f FriendRepo) DeleteFriend(userID, otherID uuid.UUID) error {
-	friends := []models.FriendsModel{}
+	var friends []models.FriendsModel
 	err := configs.DBEngine.Where("user_id = ?", userID).Find(&friends).Error
 	if err != nil {
 		return err

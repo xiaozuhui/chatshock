@@ -16,67 +16,16 @@ import (
 	"errors"
 
 	"github.com/gofrs/uuid"
-	"gorm.io/gorm"
 )
 
 type UserService struct {
-	userRepo interfaces.IUser
+	UserRepo interfaces.IUser
 }
 
 func UserFactory() UserService {
 	userRepo := repositories.UserRepo{}
 	userService := UserService{userRepo}
 	return userService
-}
-
-// Register
-/**
- * @description: 注册用户: 创建用户和账号信息
- * @param {entities.UserEntity} userEntity
- * @return {*}
- * @author: xiaozuhui
- */
-func (s UserService) Register(userEntity entities.UserEntity) (*UserInfo, error) {
-	if userEntity.PhoneNumber == "" {
-		return nil, errors.New("手机号码不能为空")
-	}
-	_, err := s.userRepo.FindUserByPhoneNumber(userEntity.PhoneNumber)
-	if err != gorm.ErrRecordNotFound {
-		return nil, errors.New("该手机号码已经被注册")
-	}
-	// 创建默认头像
-	img, err := utils.GenerateAvatar(userEntity.PhoneNumber)
-	if err != nil {
-		return nil, err
-	}
-	err = utils.MakeBucket(userEntity.PhoneNumber)
-	if err != nil {
-		return nil, err
-	}
-	uploadInfo, err := utils.UploadImage(userEntity.PhoneNumber, userEntity.PhoneNumber+"_avatar.png", img)
-	if err != nil {
-		return nil, err
-	}
-	userEntity.Avatar = uploadInfo.Key
-	ue, err := s.userRepo.CreateUser(userEntity)
-	if err != nil {
-		return nil, err
-	}
-	// 注册后默认登录
-	token, refresh, expireTime, err := utils.GenerateToken(ue.PhoneNumber)
-	if err != nil {
-		return nil, err
-	}
-	t := MakeToken(token, refresh, *expireTime)
-	user, err := MakeUser(*ue)
-	if err != nil {
-		return nil, err
-	}
-	userResp := UserInfo{
-		User:  user,
-		Token: t,
-	}
-	return &userResp, nil
 }
 
 // CheckPassword
@@ -88,7 +37,7 @@ func (s UserService) Register(userEntity entities.UserEntity) (*UserInfo, error)
  * @author: xiaozuhui
  */
 func (s UserService) CheckPassword(phoneNumber string, password string) (bool, error) {
-	user, err := s.userRepo.FindUserByPhoneNumber(phoneNumber)
+	user, err := s.UserRepo.FindUserByPhoneNumber(phoneNumber)
 	if err != nil {
 		return false, err
 	}
@@ -110,7 +59,7 @@ func (s UserService) CheckPassword(phoneNumber string, password string) (bool, e
  * @author: xiaozuhui
  */
 func (s UserService) Login(phoneNumber string) (*UserInfo, error) {
-	userEntity, err := s.userRepo.FindUserByPhoneNumber(phoneNumber)
+	userEntity, err := s.UserRepo.FindUserByPhoneNumber(phoneNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +71,7 @@ func (s UserService) Login(phoneNumber string) (*UserInfo, error) {
 		return nil, err
 	}
 	// 更新user的login时间
-	err = s.userRepo.UpdateLastLogin(userEntity.UUID)
+	err = s.UserRepo.UpdateLastLogin(userEntity.UUID)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +94,7 @@ func (s UserService) Login(phoneNumber string) (*UserInfo, error) {
  * @author: xiaozuhui
  */
 func (s UserService) GetUserByPhoneNumber(phoneNumber string) (*User, error) {
-	user, err := s.userRepo.FindUserByPhoneNumber(phoneNumber)
+	user, err := s.UserRepo.FindUserByPhoneNumber(phoneNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +116,7 @@ func (s UserService) GetUserByPhoneNumber(phoneNumber string) (*User, error) {
  * @author: xiaozuhui
  */
 func (s UserService) GetUser(userID uuid.UUID) (*User, error) {
-	user, err := s.userRepo.FindUser(userID)
+	user, err := s.UserRepo.FindUser(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +135,7 @@ func (s UserService) GetUser(userID uuid.UUID) (*User, error) {
  * @author: xiaozuhui
  */
 func (s UserService) GetUsers(userIDs []uuid.UUID) ([]*User, error) {
-	userEntities, err := s.userRepo.FindUsers(userIDs)
+	userEntities, err := s.UserRepo.FindUsers(userIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -209,6 +158,6 @@ func (s UserService) GetUsers(userIDs []uuid.UUID) ([]*User, error) {
  * @author: xiaozuhui
  */
 func (s UserService) UpdateAccount(userEntity *entities.UserEntity) error {
-	err := s.userRepo.UpdateAccount(*userEntity)
+	err := s.UserRepo.UpdateAccount(*userEntity)
 	return err
 }

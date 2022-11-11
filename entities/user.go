@@ -15,7 +15,7 @@ type UserEntity struct {
 	NickName     string        `json:"nickname"`
 	Password     string        `json:"password"`
 	PhoneNumber  string        `json:"phone_number"`
-	Avatar       string        `json:"avatar"`
+	Avatar       *FileEntity   `json:"avatar"`
 	Introduction string        `json:"introduction"`
 	LastLogin    time.Time     `json:"last_login"`
 	Gender       GenderTypeStr `json:"gender"`

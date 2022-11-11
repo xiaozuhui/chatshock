@@ -9,6 +9,7 @@ package controllers
  */
 
 import (
+	"chatshock/applications"
 	"chatshock/entities"
 	"chatshock/middlewares"
 	"chatshock/services"
@@ -59,13 +60,13 @@ func (e *UserController) Register(c *gin.Context) {
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
-	userService := services.UserFactory()
+	userApplication := applications.NewUserApplication()
 	userEntity := entities.UserEntity{
 		NickName:    userParam.NickName,
 		Password:    userParam.Password,
 		PhoneNumber: userParam.PhoneNumber,
 	}
-	userInfo, err := userService.Register(userEntity)
+	userInfo, err := userApplication.Register(userEntity)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
@@ -262,6 +263,9 @@ func (e *UserController) UpdateAccount(c *gin.Context) {
 
 // UpdateAvatar 修改头像
 func (e *UserController) UpdateAvatar(c *gin.Context) {
+	userService := services.UserFactory()
+	fileService := services.FileFactory()
+
 	id := c.Param("id")
 	UUID, err := uuid.FromString(id)
 	if err != nil {
@@ -271,7 +275,6 @@ func (e *UserController) UpdateAvatar(c *gin.Context) {
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
-	userService := services.UserFactory()
 	user, err := userService.GetUser(UUID)
 	if err != nil {
 		panic(errors.WithStack(err))
@@ -280,12 +283,17 @@ func (e *UserController) UpdateAvatar(c *gin.Context) {
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
+	// 保存信息
+	fileEntity, err := fileService.SaveFile(imgInfo, "photo", avatar.Header.Get("Content-Type"))
+	if err != nil {
+		return
+	}
 	userEntity := entities.UserEntity{
 		BaseEntity: entities.BaseEntity{
 			UUID: user.UUID,
 		},
 		PhoneNumber: user.PhoneNumber,
-		Avatar:      imgInfo.Key,
+		Avatar:      fileEntity,
 	}
 	err = userService.UpdateAccount(&userEntity)
 	if err != nil {

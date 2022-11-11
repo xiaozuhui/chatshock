@@ -11,7 +11,6 @@ package utils
 import (
 	"chatshock/configs"
 	"context"
-	"fmt"
 	"log"
 	"mime/multipart"
 	"net/url"
@@ -20,6 +19,8 @@ import (
 
 	"github.com/minio/minio-go/v7"
 )
+
+const Expires = time.Second * 24 * 60 * 60 * 30
 
 // MakeBucket
 /**
@@ -104,15 +105,14 @@ func UploadImage(bucketName, objectName string, img *os.File) (*minio.UploadInfo
  */
 func GetFileUrl(bucketName, objectName string) (*url.URL, error) {
 	ctx := context.Background()
-	expires := time.Second * 24 * 60 * 60 * 30
-	_url, err := configs.MinioClient.PresignedGetObject(ctx, bucketName, objectName, expires, url.Values{})
+	_url, err := configs.MinioClient.PresignedGetObject(ctx, bucketName, objectName, Expires, url.Values{})
 	if err != nil {
 		return nil, err
 	}
-	// 取出url后，存入redis
-	_, err = RedisSet(fmt.Sprintf("%s-avatar_url", bucketName), _url.String(), &expires)
-	if err != nil {
-		return nil, err
-	}
+	//// TODO 目前不需要使用这个方法：取出url后，存入redis
+	//_, err = RedisSet(fmt.Sprintf("%s-avatar_url", bucketName), _url.String(), &expires)
+	//if err != nil {
+	//	return nil, err
+	//}
 	return _url, nil
 }

@@ -26,7 +26,7 @@ func NewFriendApplication() FriendApplication {
 	}
 }
 
-// GetFriends
+// GetAllFriends
 /**
  * @description: 获取所有的好友
  * @param {uuid.UUID} userID
