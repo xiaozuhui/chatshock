@@ -16,6 +16,7 @@ var (
 	Conf        *Config
 	MinioClient *minio.Client
 	SMSClient   *smsapi.Client
+	FormatTime  = "2006-01-02 15:04:05"
 )
 
 type Config struct {
@@ -52,6 +53,7 @@ type AppConfig struct {
 	AppName string `json:"app_name"`
 	AppHost string `json:"app_host"`
 	AppPort string `json:"app_port"`
+	IsDebug bool   `json:"is_debug"`
 }
 
 type MinioConfig struct {
@@ -70,6 +72,7 @@ func (c *Config) Parse(viper *viper.Viper) {
 	c.AppConfig = &AppConfig{}
 	c.AppConfig.AppName = viper.GetString("app.app_name")
 	c.AppConfig.AppPort = viper.GetString("app.app_port")
+	c.AppConfig.IsDebug = viper.GetBool("app.is_debug")
 	hostStr := viper.Get("app.app_host")
 	if hostStr == nil {
 		c.AppConfig.AppHost = "0.0.0.0"

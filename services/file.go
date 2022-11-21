@@ -49,12 +49,12 @@ func (s FileService) GetFile(id uuid.UUID) (*entities.FileEntity, error) {
 
 // SaveFile 已经在方法外部，上传了文件
 func (s FileService) SaveFile(info *minio.UploadInfo,
-	fileType, mimeType string) (*entities.FileEntity, error) {
+	fileType, contentType string) (*entities.FileEntity, error) {
 	file := &entities.FileEntity{}
 	file.Bucket = info.Bucket
 	file.FileName = info.Key
 	file.FileType = entities.FileTypeStr(fileType)
-	file.MIMEType = mimeType
+	file.ContentType = contentType
 	url_, err := utils.GetFileUrl(info.Bucket, info.Key)
 	if err != nil {
 		return nil, err
@@ -79,12 +79,12 @@ func (s FileService) SaveFiles(infos []map[string]interface{}) ([]*entities.File
 	for _, info := range infos {
 		uploadInfo := info["info"].(*minio.UploadInfo)
 		fileType := info["file_type"].(string)
-		mimeType := info["mime_type"].(string)
+		contentType := info["content_type"].(string)
 		file := &entities.FileEntity{}
 		file.Bucket = uploadInfo.Bucket
 		file.FileName = uploadInfo.Key
 		file.FileType = entities.FileTypeStr(fileType)
-		file.MIMEType = mimeType
+		file.ContentType = contentType
 		url_, err := utils.GetFileUrl(uploadInfo.Bucket, uploadInfo.Key)
 		if err != nil {
 			return nil, err

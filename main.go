@@ -10,17 +10,29 @@ package main
 
 import (
 	"chatshock/configs"
+	"chatshock/middlewares"
 	"flag"
-	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
+
+	log "github.com/sirupsen/logrus"
 )
+
+func init() {
+	log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.WarnLevel)
+}
 
 func main() {
 	var configVersion string
 	flag.StringVar(&configVersion, "c", "dev", "请输入配置版本(dev,product,)")
 	flag.Parse()
-	r := gin.Default()
+	var r *gin.Engine
+	r = gin.New()
+	r.Use(middlewares.AccessLog())
+	r.Use(middlewares.Recovery())
 	InitConfig(configVersion)
 	InitDatabase()
 	InitRedis()

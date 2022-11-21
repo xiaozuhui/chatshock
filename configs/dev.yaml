@@ -2,7 +2,7 @@ app:
   app_name: ChatShock
   app_host:
   app_port: 18088
-  debug: true
+  is_debug: true
 
 db:
   db_name: chatshock

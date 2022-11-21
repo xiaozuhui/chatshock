@@ -26,7 +26,7 @@ type FileModel struct {
 	FileURL       string            `json:"file_url"`        // 文件可访问url
 	URLExpireTime *time.Time        `json:"url_expire_time"` // url失效时间
 	FileType      entities.FileType `json:"file_type"`       // 文件类型
-	MIMEType      string            `json:"mime_type"`       // MIME类型
+	ContentType   string            `json:"mime_type"`       // MIME类型
 }
 
 func (m FileModel) ModelToEntity() interface{} {
@@ -37,7 +37,7 @@ func (m FileModel) ModelToEntity() interface{} {
 	fm.FileURL = m.FileURL
 	fm.URLExpireTime = m.URLExpireTime
 	fm.FileType = m.FileType.Parse()
-	fm.MIMEType = m.MIMEType
+	fm.ContentType = m.ContentType
 	return fm
 }
 
@@ -49,7 +49,7 @@ func EntityToFileModel(e *entities.FileEntity) *FileModel {
 	m.FileURL = e.FileURL
 	m.URLExpireTime = e.URLExpireTime
 	m.FileType = e.FileType.Parse()
-	m.MIMEType = e.MIMEType
+	m.ContentType = e.ContentType
 	return m
 }
 

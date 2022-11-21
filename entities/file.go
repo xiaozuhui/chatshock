@@ -14,7 +14,7 @@ type FileEntity struct {
 	FileURL       string      `json:"file_url"`        // 文件可访问url
 	URLExpireTime *time.Time  `json:"url_expire_time"` // url失效时间
 	FileType      FileTypeStr `json:"file_type"`       // 文件类型
-	MIMEType      string      `json:"mime_type"`       // MIME类型
+	ContentType   string      `json:"mime_type"`       // MIME类型
 }
 
 type FileType uint8
