@@ -1,3 +1,5 @@
+package utils
+
 /*
  * @Author: xiaozuhui
  * @Date: 2022-10-31 12:15:25
@@ -5,7 +7,6 @@
  * @LastEditTime: 2022-10-31 12:20:45
  * @Description:
  */
-package utils
 
 import (
 	"encoding/base64"

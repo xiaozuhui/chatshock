@@ -17,10 +17,10 @@ redis:
   redis_port: 26379
 
 phone:
-  app_key: "LTAIiqpV70phJ1vM"
-  app_secret: "A9u84iOl6Vh0ybgeZWJVXu4uHVxGtq"
-  template_code: "SMS_105835005"
-  sign_name: "许子恒"
+  app_key: ""
+  app_secret: ""
+  template_code: ""
+  sign_name: ""
   host: "dysmsapi.aliyuncs.com"
 
 minio:

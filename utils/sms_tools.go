@@ -1,3 +1,5 @@
+package utils
+
 /*
  * @Author: xiaozuhui
  * @Date: 2022-10-31 10:48:58
@@ -5,7 +7,6 @@
  * @LastEditTime: 2022-10-31 11:02:14
  * @Description:
  */
-package utils
 
 import (
 	"chatshock/configs"

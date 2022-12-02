@@ -1,10 +1,22 @@
 package applications
 
+/*
+ * @Author: xiaozuhui
+ * @Date: 2022-12-02 12:22:19
+ * @LastEditors: xiaozuhui xiaozuhui@outlook.com
+ * @LastEditTime: 2022-12-06 22:29:32
+ * @Description:
+ */
+
 import (
 	"chatshock/entities"
 	"chatshock/services"
+	"chatshock/services/resp"
 	"chatshock/utils"
 	"errors"
+	"mime/multipart"
+
+	"github.com/gofrs/uuid"
 	"gorm.io/gorm"
 )
 
@@ -64,8 +76,8 @@ func (a UserApplication) Register(userEntity entities.UserEntity) (*services.Use
 	if err != nil {
 		return nil, err
 	}
-	t := services.MakeToken(token, refresh, *expireTime)
-	user, err := services.MakeUser(*ue)
+	t := resp.MakeToken(token, refresh, *expireTime)
+	user, err := resp.MakeUser(*ue)
 	if err != nil {
 		return nil, err
 	}
@@ -74,4 +86,43 @@ func (a UserApplication) Register(userEntity entities.UserEntity) (*services.Use
 		Token: t,
 	}
 	return &userResp, nil
+}
+
+// UpdateAvatar
+/**
+ * @description: 更新头像
+ * @param {uuid.UUID} userID
+ * @param {*multipart.FileHeader} avatar
+ * @return (*resp.User, error)
+ */
+func (a UserApplication) UpdateAvatar(userID uuid.UUID, avatar *multipart.FileHeader) (*resp.User, error) {
+	userResp, err := a.UserService.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	imgInfo, err := utils.UploadFiles(userResp.PhoneNumber, avatar.Filename, avatar)
+	if err != nil {
+		return nil, err
+	}
+	// 保存信息
+	fileEntity, err := a.FileService.SaveFile(imgInfo, "photo", avatar.Header.Get("Content-Type"))
+	if err != nil {
+		return nil, err
+	}
+	userEntity := entities.UserEntity{
+		BaseEntity: entities.BaseEntity{
+			UUID: userResp.UUID,
+		},
+		PhoneNumber: userResp.PhoneNumber,
+		Avatar:      fileEntity,
+	}
+	err = a.UserService.UpdateAccount(&userEntity)
+	if err != nil {
+		return nil, err
+	}
+	userResp, err = a.UserService.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	return userResp, nil
 }

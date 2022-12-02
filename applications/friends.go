@@ -2,6 +2,7 @@ package applications
 
 import (
 	"chatshock/services"
+	"chatshock/services/resp"
 
 	"github.com/gofrs/uuid"
 )
@@ -10,7 +11,7 @@ import (
  * @Author: xiaozuhui
  * @Date: 2022-11-10 09:52:56
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-10 10:47:57
+ * @LastEditTime: 2022-12-06 09:45:33
  * @Description:
  */
 
@@ -33,7 +34,7 @@ func NewFriendApplication() FriendApplication {
  * @return {*}
  * @author: xiaozuhui
  */
-func (a FriendApplication) GetAllFriends(userID uuid.UUID) ([]*services.User, error) {
+func (a FriendApplication) GetAllFriends(userID uuid.UUID) ([]*resp.User, error) {
 	friends, err := a.FriendService.GetFriends(userID)
 	if err != nil {
 		return nil, err
@@ -52,7 +53,7 @@ func (a FriendApplication) GetAllFriends(userID uuid.UUID) ([]*services.User, er
  * @return {*}
  * @author: xiaozuhui
  */
-func (a FriendApplication) GetFriends(userID uuid.UUID) (map[string][]*services.User, error) {
+func (a FriendApplication) GetFriends(userID uuid.UUID) (map[string][]*resp.User, error) {
 	bindUUIDs, unBindUUIDs, err := a.FriendService.GetBindFriends(userID)
 	if err != nil {
 		return nil, err
@@ -65,7 +66,7 @@ func (a FriendApplication) GetFriends(userID uuid.UUID) (map[string][]*services.
 	if err != nil {
 		return nil, err
 	}
-	res := make(map[string][]*services.User, 0)
+	res := make(map[string][]*resp.User, 0)
 	res["bind"] = bindFriends
 	res["unbind"] = unBindFriends
 	return res, nil

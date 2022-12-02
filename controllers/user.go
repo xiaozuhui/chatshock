@@ -4,7 +4,7 @@ package controllers
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:33:56
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-09 09:13:57
+ * @LastEditTime: 2022-12-07 16:38:16
  * @Description:
  */
 
@@ -47,7 +47,6 @@ func (e *UserController) Router(engine *gin.Engine) {
 /**
  * @description: 注册用户
  * @param {*gin.Context} c
- * @return {*}
  * @author: xiaozuhui
  */
 func (e *UserController) Register(c *gin.Context) {
@@ -77,7 +76,6 @@ func (e *UserController) Register(c *gin.Context) {
 /**
  * @description: 检查验证码
  * @param {*gin.Context} c
- * @return {*}
  * @author: xiaozuhui
  */
 func (e *UserController) CheckValidCode(c *gin.Context) {
@@ -100,7 +98,6 @@ func (e *UserController) CheckValidCode(c *gin.Context) {
 /**
  * @description: 使用密码登录
  * @param {*gin.Context} c
- * @return {*}
  * @author: xiaozuhui
  */
 func (e *UserController) Login(c *gin.Context) {
@@ -133,7 +130,6 @@ func (e *UserController) Login(c *gin.Context) {
 /**
  * @description: 使用手机号登录
  * @param {*gin.Context} c
- * @return {*}
  * @author: xiaozuhui
  */
 func (e *UserController) LoginByPhoneNumber(c *gin.Context) {
@@ -161,7 +157,6 @@ func (e *UserController) LoginByPhoneNumber(c *gin.Context) {
 /**
  * @description: 手机号验证且发送验证码
  * @param {*gin.Context} c
- * @return {*}
  * @author: xiaozuhui
  */
 func (e *UserController) PhoneNumber(c *gin.Context) {
@@ -198,7 +193,6 @@ func (e *UserController) PhoneNumber(c *gin.Context) {
 /**
  * @description: 获取账号信息
  * @param {*gin.Context} c
- * @return {*}
  * @author: xiaozuhui
  */
 func (e *UserController) GetAccount(c *gin.Context) {
@@ -223,7 +217,6 @@ func (e *UserController) GetAccount(c *gin.Context) {
 					  2、Introduction
 					  3、Gender
  * @param {*gin.Context}
- * @return {*}
  * @author: xiaozuhui
 */
 func (e *UserController) UpdateAccount(c *gin.Context) {
@@ -261,11 +254,14 @@ func (e *UserController) UpdateAccount(c *gin.Context) {
 	c.JSON(200, gin.H{})
 }
 
-// UpdateAvatar 修改头像
+// UpdateAvatar
+/**
+ * @description: 更新头像
+ * @param {*gin.Context} c
+ * @author: xiaozuhui
+ */
 func (e *UserController) UpdateAvatar(c *gin.Context) {
-	userService := services.UserFactory()
-	fileService := services.FileFactory()
-
+	userApp := applications.NewUserApplication()
 	id := c.Param("id")
 	UUID, err := uuid.FromString(id)
 	if err != nil {
@@ -275,41 +271,24 @@ func (e *UserController) UpdateAvatar(c *gin.Context) {
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
-	user, err := userService.GetUser(UUID)
+	userResp, err := userApp.UpdateAvatar(UUID, avatar)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
-	imgInfo, err := utils.UploadFiles(user.PhoneNumber, avatar.Filename, avatar)
-	if err != nil {
-		panic(errors.WithStack(err))
-	}
-	// 保存信息
-	fileEntity, err := fileService.SaveFile(imgInfo, "photo", avatar.Header.Get("Content-Type"))
-	if err != nil {
-		return
-	}
-	userEntity := entities.UserEntity{
-		BaseEntity: entities.BaseEntity{
-			UUID: user.UUID,
-		},
-		PhoneNumber: user.PhoneNumber,
-		Avatar:      fileEntity,
-	}
-	err = userService.UpdateAccount(&userEntity)
-	if err != nil {
-		panic(errors.WithStack(err))
-	}
-	user, err = userService.GetUser(UUID)
-	if err != nil {
-		panic(errors.WithStack(err))
-	}
-	c.JSON(200, user)
+	c.JSON(200, userResp)
 }
 
+// TODO: 重新绑定手机
 func (e *UserController) RebindPhoneNumber(c *gin.Context) {
 
 }
 
+// TODO: 重新绑定邮箱
+func (e *UserController) RebindEmail(c *gin.Context) {
+
+}
+
+// TODO: 重置密码
 func (e *UserController) ResetPassword(c *gin.Context) {
 
 }

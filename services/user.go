@@ -4,7 +4,7 @@ package services
  * @Author: xiaozuhui
  * @Date: 2022-10-31 15:20:26
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-10 10:36:56
+ * @LastEditTime: 2022-12-06 09:44:34
  * @Description:
  */
 
@@ -12,6 +12,7 @@ import (
 	"chatshock/entities"
 	"chatshock/interfaces"
 	"chatshock/repositories"
+	"chatshock/services/resp"
 	"chatshock/utils"
 	"errors"
 
@@ -75,11 +76,11 @@ func (s UserService) Login(phoneNumber string) (*UserInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	user, err := MakeUser(*userEntity)
+	user, err := resp.MakeUser(*userEntity)
 	if err != nil {
 		return nil, err
 	}
-	token_ := MakeToken(token, refresh, *expireTime)
+	token_ := resp.MakeToken(token, refresh, *expireTime)
 	userInfo := &UserInfo{
 		user, token_,
 	}
@@ -93,7 +94,7 @@ func (s UserService) Login(phoneNumber string) (*UserInfo, error) {
  * @return {*User, error}
  * @author: xiaozuhui
  */
-func (s UserService) GetUserByPhoneNumber(phoneNumber string) (*User, error) {
+func (s UserService) GetUserByPhoneNumber(phoneNumber string) (*resp.User, error) {
 	user, err := s.UserRepo.FindUserByPhoneNumber(phoneNumber)
 	if err != nil {
 		return nil, err
@@ -101,11 +102,11 @@ func (s UserService) GetUserByPhoneNumber(phoneNumber string) (*User, error) {
 	if user == nil {
 		return nil, errors.New("该手机号没有注册")
 	}
-	user_, err := MakeUser(*user)
+	userResp, err := resp.MakeUser(*user)
 	if err != nil {
 		return nil, err
 	}
-	return user_, nil
+	return userResp, nil
 }
 
 // GetUser
@@ -115,12 +116,12 @@ func (s UserService) GetUserByPhoneNumber(phoneNumber string) (*User, error) {
  * @return {*User} 用户信息
  * @author: xiaozuhui
  */
-func (s UserService) GetUser(userID uuid.UUID) (*User, error) {
+func (s UserService) GetUser(userID uuid.UUID) (*resp.User, error) {
 	user, err := s.UserRepo.FindUser(userID)
 	if err != nil {
 		return nil, err
 	}
-	user_, err := MakeUser(*user)
+	user_, err := resp.MakeUser(*user)
 	if err != nil {
 		return nil, err
 	}
@@ -134,14 +135,14 @@ func (s UserService) GetUser(userID uuid.UUID) (*User, error) {
  * @return {*}
  * @author: xiaozuhui
  */
-func (s UserService) GetUsers(userIDs []uuid.UUID) ([]*User, error) {
+func (s UserService) GetUsers(userIDs []uuid.UUID) ([]*resp.User, error) {
 	userEntities, err := s.UserRepo.FindUsers(userIDs)
 	if err != nil {
 		return nil, err
 	}
-	users := make([]*User, 0, len(userEntities))
+	users := make([]*resp.User, 0, len(userEntities))
 	for _, userEntity := range userEntities {
-		user_, err := MakeUser(*userEntity)
+		user_, err := resp.MakeUser(*userEntity)
 		if err != nil {
 			return nil, err
 		}
