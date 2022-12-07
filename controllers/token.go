@@ -4,7 +4,7 @@ package controllers
  * @Author: xiaozuhui
  * @Date: 2022-10-31 12:25:56
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-12-06 09:42:38
+ * @LastEditTime: 2022-12-12 13:46:14
  * @Description:
  */
 
@@ -43,7 +43,7 @@ func (e *TokenController) RefreshToken(c *gin.Context) {
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
-	token, refresh, expireTime, err := utils.GenerateToken(claims.PhoneNumber)
+	token, refresh, expireTime, err := utils.GenerateToken(claims.UUID)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}

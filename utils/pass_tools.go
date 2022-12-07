@@ -11,13 +11,13 @@ package utils
 import (
 	"encoding/base64"
 	"errors"
-	"strconv"
+	"github.com/gofrs/uuid"
 	"strings"
 
 	"golang.org/x/crypto/scrypt"
 )
 
-var AppSecret = []byte("6c9c48b1-1ef6dygg-91191a14-b9u14756")
+//var AppSecret = []byte("6c9c48b1-1ef6dygg-91191a14-b9u14756")
 
 type Salt []byte
 
@@ -28,33 +28,21 @@ type Salt []byte
  * @return {*}
  * @author: xiaozuhui
  */
-func GenerateSalt(phoneNumber string) Salt {
-	var nums []int
-	for _, n := range strings.Split(phoneNumber, "") {
-		k, err := strconv.Atoi(n)
-		if err != nil {
-			k = 5
-		}
-		nums = append(nums, k)
+func GenerateSalt(UUID uuid.UUID) Salt {
+	var nums []string
+	for _, n := range strings.Split(strings.ReplaceAll(UUID.String(), "-", ""), "") {
+		nums = append(nums, n)
 	}
-	res := make([]byte, 0, 8)
-	n1 := nums[0] + nums[10]
-	n2 := nums[1] + nums[9]
-	n3 := nums[2] + nums[8]
-	n4 := nums[3] + nums[7]
-	n5 := nums[4] + nums[6]
-	n6 := nums[5] + nums[5]
+	res := make([]byte, 0, 0)
+	n1 := nums[0] + nums[len(nums)-1]
+	n2 := nums[1] + nums[len(nums)-2]
+	n3 := nums[2] + nums[len(nums)-3]
+	n4 := nums[3] + nums[len(nums)-4]
+	n5 := nums[4] + nums[len(nums)-5]
+	n6 := nums[5] + nums[len(nums)-6]
 	n7 := n1 + n6
 	n8 := n2 + n5
-	k1 := AppSecret[n1]
-	k2 := AppSecret[n2]
-	k3 := AppSecret[n3]
-	k4 := AppSecret[n4]
-	k5 := AppSecret[n5]
-	k6 := AppSecret[n6]
-	k7 := AppSecret[n7]
-	k8 := AppSecret[n8]
-	res = append(res, k1, k2, k3, k4, k5, k6, k7, k8)
+	res = []byte(n1 + n2 + n3 + n4 + n5 + n6 + n7 + n8)
 	return res
 }
 
@@ -66,8 +54,8 @@ func GenerateSalt(phoneNumber string) Salt {
  * @return {*}
  * @author: xiaozuhui
  */
-func MakePassword(phoneNumber, password string) (string, error) {
-	salt := GenerateSalt(phoneNumber)
+func MakePassword(UUID uuid.UUID, password string) (string, error) {
+	salt := GenerateSalt(UUID)
 	dk, err := scrypt.Key([]byte(password), salt, 1<<15, 8, 1, 32)
 	if err != nil {
 		return "", err
@@ -84,8 +72,8 @@ func MakePassword(phoneNumber, password string) (string, error) {
  * @return {*}
  * @author: xiaozuhui
  */
-func CheckPassword(phoneNumber, password1, password2 string) (bool, error) {
-	salt := GenerateSalt(phoneNumber)
+func CheckPassword(UUID uuid.UUID, password1, password2 string) (bool, error) {
+	salt := GenerateSalt(UUID)
 	dk, err := scrypt.Key([]byte(password1), salt, 1<<15, 8, 1, 32)
 	if err != nil {
 		return false, err

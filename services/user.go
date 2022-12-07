@@ -4,7 +4,7 @@ package services
  * @Author: xiaozuhui
  * @Date: 2022-10-31 15:20:26
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-12-06 09:44:34
+ * @LastEditTime: 2022-12-13 15:06:16
  * @Description:
  */
 
@@ -37,15 +37,22 @@ func UserFactory() UserService {
  * @return {*}
  * @author: xiaozuhui
  */
-func (s UserService) CheckPassword(phoneNumber string, password string) (bool, error) {
-	user, err := s.UserRepo.FindUserByPhoneNumber(phoneNumber)
+func (s UserService) CheckPassword(contact interfaces.ISender, password string) (bool, error) {
+	var user *entities.UserEntity
+	var err error
+	switch contact.Type() {
+	case utils.Phone:
+		user, err = s.UserRepo.FindUserByPhoneNumber(contact.String())
+	case utils.Email:
+		user, err = s.UserRepo.FindUserByEmail(contact.String())
+	}
 	if err != nil {
 		return false, err
 	}
 	if user == nil {
-		return false, errors.New("该手机号没有注册")
+		return false, errors.New("未注册")
 	}
-	isCheck, err := utils.CheckPassword(phoneNumber, password, user.Password)
+	isCheck, err := utils.CheckPassword(user.UUID, password, user.Password)
 	if err != nil {
 		return false, err
 	}
@@ -59,15 +66,22 @@ func (s UserService) CheckPassword(phoneNumber string, password string) (bool, e
  * @return {UserInfo} 返回用户基本信息以及token
  * @author: xiaozuhui
  */
-func (s UserService) Login(phoneNumber string) (*UserInfo, error) {
-	userEntity, err := s.UserRepo.FindUserByPhoneNumber(phoneNumber)
+func (s UserService) Login(contact interfaces.ISender) (*UserInfo, error) {
+	var userEntity *entities.UserEntity
+	var err error
+	switch contact.Type() {
+	case utils.Phone:
+		userEntity, err = s.UserRepo.FindUserByPhoneNumber(contact.String())
+	case utils.Email:
+		userEntity, err = s.UserRepo.FindUserByEmail(contact.String())
+	}
 	if err != nil {
 		return nil, err
 	}
 	if userEntity == nil {
-		return nil, errors.New("该手机号没有注册")
+		return nil, errors.New("未注册")
 	}
-	token, refresh, expireTime, err := utils.GenerateToken(phoneNumber)
+	token, refresh, expireTime, err := utils.GenerateToken(userEntity.UUID)
 	if err != nil {
 		return nil, err
 	}

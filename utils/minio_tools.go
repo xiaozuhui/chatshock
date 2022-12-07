@@ -4,17 +4,17 @@ package utils
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:17:18
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-01 09:55:24
+ * @LastEditTime: 2022-12-09 11:03:36
  * @Description:
  */
 
 import (
+	"bytes"
 	"chatshock/configs"
 	"context"
 	"log"
 	"mime/multipart"
 	"net/url"
-	"os"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -84,7 +84,7 @@ func UploadFiles(bucketName, objectName string, file *multipart.FileHeader) (*mi
  * @return {(*minio.UploadInfo, error)}
  * @author: xiaozuhui
  */
-func UploadImage(bucketName, objectName string, img *os.File) (*minio.UploadInfo, error) {
+func UploadImage(bucketName, objectName string, img *bytes.Buffer) (*minio.UploadInfo, error) {
 	ctx := context.Background()
 	info, err := configs.MinioClient.PutObject(ctx,
 		bucketName, objectName, img, -1, minio.PutObjectOptions{ContentType: "application/png"})

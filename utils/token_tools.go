@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/gofrs/uuid"
 	"strings"
 	"time"
 
@@ -17,13 +18,13 @@ const TokenExpireDuration = time.Hour * 24 * 14
 const RefreshExpireDuration = time.Hour * 24 * 21
 
 type UserClaims struct {
-	PhoneNumber string
+	UUID uuid.UUID
 	jwt.RegisteredClaims
 }
 
 type UserRefreshClaims struct {
-	PhoneNumber string
-	IsFresh     bool
+	UUID    uuid.UUID
+	IsFresh bool
 	jwt.RegisteredClaims
 }
 
@@ -58,12 +59,12 @@ func GetToken(authHeader string) (string, error) {
  * @return {*}
  * @author: xiaozuhui
  */
-func GenerateToken(phoneNumber string) (string, string, *time.Time, error) {
-	token, expireTime, err := generateToken(phoneNumber)
+func GenerateToken(UUID uuid.UUID) (string, string, *time.Time, error) {
+	token, expireTime, err := generateToken(UUID)
 	if err != nil {
 		return "", "", nil, err
 	}
-	refreshToken, err := generateRefreshToken(phoneNumber)
+	refreshToken, err := generateRefreshToken(UUID)
 	if err != nil {
 		return "", "", nil, err
 	}
@@ -76,10 +77,10 @@ func GenerateToken(phoneNumber string) (string, string, *time.Time, error) {
  * @return {*}
  * @author: xiaozuhui
  */
-func generateToken(phoneNumber string) (string, time.Time, error) {
+func generateToken(UUID uuid.UUID) (string, time.Time, error) {
 	expireTime := time.Now().Add(TokenExpireDuration)
 	claims := &UserClaims{
-		PhoneNumber: phoneNumber,
+		UUID: UUID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expireTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()), // 签发时间
@@ -100,10 +101,10 @@ func generateToken(phoneNumber string) (string, time.Time, error) {
  * @return {*}
  * @author: xiaozuhui
  */
-func generateRefreshToken(phoneNumber string) (string, error) {
+func generateRefreshToken(UUID uuid.UUID) (string, error) {
 	claims := &UserRefreshClaims{
-		PhoneNumber: phoneNumber,
-		IsFresh:     true,
+		UUID:    UUID,
+		IsFresh: true,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(RefreshExpireDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()), // 签发时间

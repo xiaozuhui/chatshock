@@ -19,9 +19,18 @@ redis:
 phone:
   app_key: ""
   app_secret: ""
-  template_code: ""
-  sign_name: ""
   host: "dysmsapi.aliyuncs.com"
+
+aliyuntplcodes:
+  - send_type: "phone_register"
+    sign_name: ""
+    template_code: ""
+
+email:
+  email_smtp: smtp.qq.com
+  from_address:
+  secret:
+  from_name: "xiaozuhui"
 
 minio:
   end_point: "http://localhost:29091/"
