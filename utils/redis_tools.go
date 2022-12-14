@@ -4,7 +4,7 @@ package utils
  * @Author: xiaozuhui
  * @Date: 2022-10-31 10:52:31
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-10-31 22:22:46
+ * @LastEditTime: 2022-12-12 16:45:31
  * @Description:
  */
 
@@ -12,7 +12,6 @@ import (
 	"chatshock/configs"
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -51,8 +50,7 @@ func RedisStrGet(k string) (*string, error) {
 	ctx := context.Background()
 	res, err := redisClient.Get(ctx, k).Result()
 	if err == redis.Nil {
-		log.Printf("键为 %v 的值不存在.", k)
-		return nil, nil
+		return nil, fmt.Errorf("键为 %s 的值不存在", k)
 	}
 	if err != nil {
 		return nil, err

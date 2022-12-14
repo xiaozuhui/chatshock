@@ -1,7 +1,15 @@
+/*
+ * @Author: xiaozuhui
+ * @Date: 2022-12-02 12:22:19
+ * @LastEditors: xiaozuhui
+ * @LastEditTime: 2022-12-13 16:46:04
+ * @Description:
+ */
 package interfaces
 
 import (
 	"chatshock/entities"
+
 	"github.com/gofrs/uuid"
 )
 

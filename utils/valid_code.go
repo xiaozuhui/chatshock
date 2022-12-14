@@ -4,11 +4,13 @@ package utils
  * @Author: xiaozuhui
  * @Date: 2022-10-31 12:22:19
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-02 09:39:06
+ * @LastEditTime: 2022-12-13 14:26:12
  * @Description:
  */
 
 import (
+	"chatshock/interfaces"
+	"fmt"
 	"log"
 	"math/rand"
 	"strings"
@@ -72,8 +74,8 @@ func (v *ValidCode) registerCode() string {
  * @return {error} 如果正确，error为nil，否则存在错误
  * @author: xiaozuhui
  */
-func CheckValidCode(phoneNumber string, vCode string) error {
-	validCode, err := RedisStrGet(phoneNumber)
+func CheckValidCode(sender interfaces.ISender, vCode string) error {
+	validCode, err := RedisStrGet(fmt.Sprintf("%s_register", sender.String()))
 	if err != nil {
 		log.Println(errors.WithStack(err))
 		return err
@@ -85,4 +87,9 @@ func CheckValidCode(phoneNumber string, vCode string) error {
 		return errors.WithStack(errors.New("验证码错误"))
 	}
 	return nil
+}
+
+func SetCheckValidCode(sender interfaces.ISender, vCode string, expTime time.Duration) error {
+	_, err := RedisSet(fmt.Sprintf("%s_register", sender.String()), vCode, &expTime)
+	return err
 }

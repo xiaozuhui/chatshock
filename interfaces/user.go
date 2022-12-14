@@ -19,8 +19,10 @@ type IUser interface {
 	FindUser(ID uuid.UUID) (*entities.UserEntity, error)
 	// FindUsers 根据ids获取员工
 	FindUsers(IDs []uuid.UUID) ([]*entities.UserEntity, error)
-	// FindUserByPhoneNumber 根据手机号码获取员工
+	// FindUserByPhoneNumber 根据手机号码获取用户
 	FindUserByPhoneNumber(phoneNumber string) (*entities.UserEntity, error)
+	// FindUserByEmail 根据Email获取用户
+	FindUserByEmail(email string) (*entities.UserEntity, error)
 	// DeleteUser 删除账号
 	DeleteUser(ID uuid.UUID) error
 	// CreateUser 创建账号

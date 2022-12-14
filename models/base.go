@@ -4,7 +4,7 @@ package models
  * @Author: xiaozuhui
  * @Date: 2022-10-28 14:25:14
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-10-31 14:27:22
+ * @LastEditTime: 2022-12-12 14:00:24
  * @Description:
  */
 
@@ -23,13 +23,16 @@ type BaseModel struct {
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
 
-func NewBaseModel() (*BaseModel, error) {
-	id, err := uuid.NewV4()
-	if err != nil {
-		return nil, err
+func NewBaseModel(UUID uuid.UUID) (*BaseModel, error) {
+	var err error
+	if UUID == uuid.Nil {
+		UUID, err = uuid.NewV4()
+		if err != nil {
+			return nil, err
+		}
 	}
 	base := &BaseModel{
-		UUID:      id,
+		UUID:      UUID,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}

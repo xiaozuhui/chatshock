@@ -4,17 +4,20 @@ package entities
  * @Author: xiaozuhui
  * @Date: 2022-10-31 10:11:01
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-02 09:29:35
+ * @LastEditTime: 2022-12-13 16:19:03
  * @Description: 用户实体
  */
 
-import "time"
+import (
+	"time"
+)
 
 type UserEntity struct {
 	BaseEntity
 	NickName     string        `json:"nickname"`
 	Password     string        `json:"password"`
 	PhoneNumber  string        `json:"phone_number"`
+	Email        string        `json:"email"`
 	Avatar       *FileEntity   `json:"avatar"`
 	Introduction string        `json:"introduction"`
 	LastLogin    time.Time     `json:"last_login"`

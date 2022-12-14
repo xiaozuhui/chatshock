@@ -4,7 +4,7 @@ package main
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:17:18
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-10-31 11:06:44
+ * @LastEditTime: 2022-12-09 13:44:46
  * @Description: 初始化各种配置
  */
 
@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	smsapi "github.com/alibabacloud-go/dysmsapi-20170525/v3/client"
@@ -64,14 +65,11 @@ func InitDatabase() {
  */
 func InitConfig(configVersion string) *configs.Config {
 	configs.Conf = &configs.Config{}
-	Pwd, err := os.Getwd()
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	configs.BaseDir, _ = os.Getwd()
 	viper.SetConfigName(configVersion)
 	viper.SetConfigType("yaml")
-	viper.SetConfigFile(Pwd + "/config/" + configVersion + ".yaml")
-	err = viper.ReadInConfig()
+	viper.SetConfigFile(filepath.Join(configs.BaseDir, "configs", configVersion+".yaml"))
+	err := viper.ReadInConfig()
 	if err != nil {
 		fmt.Println(err.Error())
 		return nil
@@ -129,9 +127,9 @@ func InitMinioClient() *minio.Client {
  */
 func InitSmsClient() *smsapi.Client {
 	var err error
-	accessKeyId := tea.String(configs.Conf.PhoneValidConfig.AppKey)
-	accessKeySecret := tea.String(configs.Conf.PhoneValidConfig.AppSecret)
-	host := configs.Conf.PhoneValidConfig.Host
+	accessKeyId := tea.String(configs.Conf.PhoneConfig.AppKey)
+	accessKeySecret := tea.String(configs.Conf.PhoneConfig.AppSecret)
+	host := configs.Conf.PhoneConfig.Host
 	_config := &openapi.Config{
 		AccessKeyId:     accessKeyId,
 		AccessKeySecret: accessKeySecret,

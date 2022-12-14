@@ -4,7 +4,7 @@ package repositories
  * @Author: xiaozuhui
  * @Date: 2022-10-28 14:25:14
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-09 13:35:42
+ * @LastEditTime: 2022-12-13 16:46:43
  * @Description:
  */
 
@@ -22,6 +22,16 @@ import (
 )
 
 type UserRepo struct {
+}
+
+func (u UserRepo) FindUserByEmail(email string) (*entities.UserEntity, error) {
+	var user models.UserModel
+	err := configs.DBEngine.First(&user, "email = ?", email).Error
+	if err != nil {
+		return nil, err
+	}
+	ent := user.ModelToEntity().(*entities.UserEntity)
+	return ent, nil
 }
 
 // FindUser
@@ -104,14 +114,17 @@ func (u UserRepo) DeleteUser(ID uuid.UUID) error {
  */
 func (u UserRepo) CreateUser(userEntity entities.UserEntity) (*entities.UserEntity, error) {
 	// 先生成密码
-	pass, err := utils.MakePassword(userEntity.PhoneNumber, userEntity.Password)
+	pass, err := utils.MakePassword(userEntity.UUID, userEntity.Password)
 	if err != nil {
 		return nil, err
 	}
 	userEntity.Password = pass
 	// 转为model
-	user := models.EntityToUserModel(&userEntity)
-	baseModel, err := models.NewBaseModel()
+	user, err := models.EntityToUserModel(&userEntity)
+	if err != nil {
+		return nil, err
+	}
+	baseModel, err := models.NewBaseModel(userEntity.UUID)
 	if err != nil {
 		return nil, err
 	}
@@ -170,8 +183,11 @@ func (u UserRepo) UpdateAccount(userEntity entities.UserEntity) error {
 	if userEntity.PhoneNumber != "" {
 		userModel.PhoneNumber = userEntity.PhoneNumber
 	}
+	if userEntity.Email != "" {
+		userModel.Email = userEntity.Email
+	}
 	if userEntity.Password != "" {
-		pass, err := utils.MakePassword(userEntity.PhoneNumber, userEntity.Password)
+		pass, err := utils.MakePassword(userEntity.UUID, userEntity.Password)
 		if err != nil {
 			return err
 		}

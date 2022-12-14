@@ -4,7 +4,7 @@ package main
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:17:18
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-10-31 14:16:34
+ * @LastEditTime: 2022-12-09 10:17:31
  * @Description:
  */
 
@@ -29,8 +29,7 @@ func main() {
 	var configVersion string
 	flag.StringVar(&configVersion, "c", "dev", "请输入配置版本(dev,product,)")
 	flag.Parse()
-	var r *gin.Engine
-	r = gin.New()
+	var r *gin.Engine = gin.New()
 	r.Use(middlewares.AccessLog())
 	r.Use(middlewares.Recovery())
 	InitConfig(configVersion)

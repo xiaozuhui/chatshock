@@ -16,23 +16,24 @@ var (
 	Conf        *Config
 	MinioClient *minio.Client
 	SMSClient   *smsapi.Client
+	BaseDir     string
 	FormatTime  = "2006-01-02 15:04:05"
 )
 
 type Config struct {
-	AppConfig        *AppConfig        `json:"app_config"`
-	RedisConfig      *RedisConfig      `json:"redis_config"`
-	DBConfig         *DBConfig         `json:"db_config"`
-	PhoneValidConfig *PhoneValidConfig `json:"phone_valid_config"`
-	MinioConfig      *MinioConfig      `json:"minio_config"`
+	AppConfig   *AppConfig   `json:"app_config"`
+	RedisConfig *RedisConfig `json:"redis_config"`
+	DBConfig    *DBConfig    `json:"db_config"`
+	PhoneConfig *PhoneConfig `json:"phone_valid_config"`
+	MinioConfig *MinioConfig `json:"minio_config"`
+	EmailConfig *EmailConfig `json:"email_config"`
 }
 
-type PhoneValidConfig struct {
-	Host         string `json:"host"`
-	AppKey       string `json:"app_key"`
-	AppSecret    string `json:"app_secret"`
-	TemplateCode string `json:"template_code"`
-	SignName     string `json:"sign_name"`
+type PhoneConfig struct {
+	Host         string                       `json:"host"`
+	AppKey       string                       `json:"app_key"`
+	AppSecret    string                       `json:"app_secret"`
+	SignTemplate map[string]map[string]string `json:"sign_template"`
 }
 
 type RedisConfig struct {
@@ -61,6 +62,13 @@ type MinioConfig struct {
 	AccessKeyID     string `json:"access_key_id"`
 	SecretAccessKey string `json:"secret_access_key"`
 	UseSSL          bool   `json:"use_ssl"`
+}
+
+type EmailConfig struct {
+	EmailSmtp   string `json:"email_smtp"`
+	FromAddress string `json:"from_address"`
+	Secret      string `json:"secret"`
+	FromName    string `json:"from_name"`
 }
 
 func (c *Config) Parse(viper *viper.Viper) {
@@ -92,16 +100,32 @@ func (c *Config) Parse(viper *viper.Viper) {
 	c.RedisConfig.RedisHost = viper.GetString("redis.redis_host")
 	c.RedisConfig.RedisPort = viper.GetInt("redis.redis_port")
 	// 解析手机验证配置
-	c.PhoneValidConfig = &PhoneValidConfig{}
-	c.PhoneValidConfig.Host = viper.GetString("phone.host")
-	c.PhoneValidConfig.AppKey = viper.GetString("phone.app_key")
-	c.PhoneValidConfig.AppSecret = viper.GetString("phone.app_secret")
-	c.PhoneValidConfig.TemplateCode = viper.GetString("phone.template_code")
-	c.PhoneValidConfig.SignName = viper.GetString("phone.sign_name")
+	c.PhoneConfig = &PhoneConfig{}
+	c.PhoneConfig.Host = viper.GetString("phone.host")
+	c.PhoneConfig.AppKey = viper.GetString("phone.app_key")
+	c.PhoneConfig.AppSecret = viper.GetString("phone.app_secret")
+	aliyuntplcodes := viper.Get("aliyuntplcodes").([]interface{})
+	for _, aliyuntplcode := range aliyuntplcodes {
+		if c.PhoneConfig.SignTemplate == nil {
+			c.PhoneConfig.SignTemplate = make(map[string]map[string]string, 0)
+		}
+		if _, ok := c.PhoneConfig.SignTemplate[aliyuntplcode.(map[string]interface{})["send_type"].(string)]; !ok {
+			c.PhoneConfig.SignTemplate[aliyuntplcode.(map[string]interface{})["send_type"].(string)] = make(map[string]string, 0)
+		}
+		// SignName -> 注册、登录啥的，需要区分，然后维护一个enum
+		c.PhoneConfig.SignTemplate[aliyuntplcode.(map[string]interface{})["send_type"].(string)][aliyuntplcode.(map[string]interface{})["sign_name"].(string)] =
+			aliyuntplcode.(map[string]interface{})["template_code"].(string)
+	}
 	// 解析minio
 	c.MinioConfig = &MinioConfig{}
 	c.MinioConfig.EndPoint = viper.GetString("minio.end_point")
 	c.MinioConfig.AccessKeyID = viper.GetString("minio.access_key_id")
 	c.MinioConfig.SecretAccessKey = viper.GetString("minio.secret_access_key")
 	c.MinioConfig.UseSSL = viper.GetBool("minio.use_ssl")
+	// 解析Email
+	c.EmailConfig = &EmailConfig{}
+	c.EmailConfig.EmailSmtp = viper.GetString("email.email_smtp")
+	c.EmailConfig.FromAddress = viper.GetString("email.from_address")
+	c.EmailConfig.Secret = viper.GetString("email.secret")
+	c.EmailConfig.FromName = viper.GetString("email.from_name")
 }

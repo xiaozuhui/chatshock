@@ -1,4 +1,5 @@
 package utils
+
 /*
  * @Author: xiaozuhui
  * @Date: 2022-10-31 15:25:08
@@ -8,26 +9,23 @@ package utils
  */
 
 import (
+	"bytes"
 	"crypto/md5"
 	"fmt"
+	"github.com/gofrs/uuid"
+	"github.com/issue9/identicon/v2"
 	"image/color"
 	"image/png"
-	"os"
-
-	"github.com/issue9/identicon/v2"
 )
 
-func GenerateAvatar(phoneNumber string) (*os.File, error) {
+func GenerateAvatar(UUID uuid.UUID) (*bytes.Buffer, error) {
 	ident := identicon.New(identicon.Style2, 128, color.NRGBA{}, color.NRGBA{})
-	pnMD5 := fmt.Sprintf("%v", md5.Sum([]byte(phoneNumber)))
+	pnMD5 := fmt.Sprintf("%v", md5.Sum([]byte(UUID.String())))
 	img := ident.Make([]byte(pnMD5))
-	tmpFile, err := os.Create("../tmp/tmp.png")
+	buff := bytes.Buffer{}
+	err := png.Encode(&buff, img)
 	if err != nil {
 		return nil, err
 	}
-	err = png.Encode(tmpFile, img)
-	if err != nil {
-		return nil, err
-	}
-	return tmpFile, nil
+	return &buff, nil
 }

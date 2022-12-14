@@ -4,25 +4,27 @@ package models
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:17:18
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-11-09 13:33:17
+ * @LastEditTime: 2022-12-13 16:19:22
  * @Description:
  */
 
 import (
 	"chatshock/custom"
 	"chatshock/entities"
+	"errors"
 	"time"
 )
 
 type UserModel struct {
 	BaseModel
-	NickName     string              `json:"nickname" gorm:"type:char(512)"`                          // nickname 即昵称
-	Password     string              `json:"password" gorm:"type:char(512)"`                          // 密码
-	PhoneNumber  string              `json:"phone_number" gorm:"type:char(11);unique_index;not null"` // 手机号码将作为唯一标识
-	Avatar       *FileModel          `json:"avatar"`                                                  // 头像可能即存文件名称
-	Introduction string              `json:"introduction" gorm:"type:char(1024)"`                     // 自我介绍
-	LastLogin    time.Time           `json:"last_login"`                                              // 最后一次登录
-	Gender       entities.GenderType `json:"gender" gorm:"type:integer"`                              // 性别
+	NickName     string              `json:"nickname" gorm:"type:char(512)"`      // nickname 即昵称
+	Password     string              `json:"password" gorm:"type:char(512)"`      // 密码
+	PhoneNumber  string              `json:"phone_number" gorm:"type:char(11);"`  // 手机号码将作为唯一标识
+	Email        string              `json:"email" gorm:"type:char(512);"`        // 邮箱地址，也可作为唯一标识
+	Introduction string              `json:"introduction" gorm:"type:char(1024)"` // 自我介绍
+	Avatar       *FileModel          `json:"avatar"`                              // 头像可能即存文件名称
+	LastLogin    time.Time           `json:"last_login"`                          // 最后一次登录
+	Gender       entities.GenderType `json:"gender" gorm:"type:integer"`          // 性别
 }
 
 func (m UserModel) ModelToEntity() interface{} {
@@ -31,6 +33,7 @@ func (m UserModel) ModelToEntity() interface{} {
 	userEntity.BaseEntity = *baseEntity
 	userEntity.NickName = m.NickName
 	userEntity.PhoneNumber = m.PhoneNumber
+	userEntity.Email = m.Email
 	userEntity.LastLogin = m.LastLogin
 	userEntity.Avatar = m.Avatar.ModelToEntity().(*entities.FileEntity)
 	userEntity.Password = m.Password
@@ -39,17 +42,21 @@ func (m UserModel) ModelToEntity() interface{} {
 	return userEntity
 }
 
-func EntityToUserModel(e *entities.UserEntity) *UserModel {
+func EntityToUserModel(e *entities.UserEntity) (*UserModel, error) {
 	m := &UserModel{}
+	if e.PhoneNumber == "" && e.Email == "" {
+		return nil, errors.New("手机号码和电子邮箱不能同时为空")
+	}
 	m.BaseModel = *EntityToBaseModel(&e.BaseEntity)
 	m.NickName = e.NickName
 	m.Password = e.Password
 	m.PhoneNumber = e.PhoneNumber
+	m.Email = e.Email
 	m.LastLogin = e.LastLogin
 	m.Avatar = EntityToFileModel(e.Avatar)
 	m.Gender = e.Gender.ParseGenderStr()
 	m.Introduction = e.Introduction
-	return m
+	return m, nil
 }
 
 var _ custom.IModel = UserModel{}

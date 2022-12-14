@@ -1,7 +1,16 @@
 package entities
 
+/*
+ * @Author: xiaozuhui
+ * @Date: 2022-12-02 12:22:19
+ * @LastEditors: xiaozuhui
+ * @LastEditTime: 2022-12-07 16:42:54
+ * @Description:
+ */
+
 import (
 	"fmt"
+
 	"github.com/pkg/errors"
 )
 
@@ -47,25 +56,18 @@ func (t MessageType) Parse() MessageTypeStr {
 	switch t {
 	case MtText:
 		typ = MtTextStr
-		break
 	case MtPhoto:
 		typ = MtPhotoStr
-		break
 	case MtVideo:
 		typ = MtVideoStr
-		break
 	case MtVoice:
 		typ = MtVoiceStr
-		break
 	case MtFile:
 		typ = MtFileStr
-		break
 	case MtTextAndPhoto:
 		typ = MtTextAndPhotoStr
-		break
 	case MtDynamicPhoto:
 		typ = MtDynamicPhotoStr
-		break
 	default:
 		panic(errors.WithStack(errors.New(fmt.Sprintf("错误的类型：%v", t))))
 	}
@@ -78,25 +80,18 @@ func (t MessageTypeStr) Parse() MessageType {
 	switch t {
 	case MtTextStr:
 		typ = MtText
-		break
 	case MtPhotoStr:
 		typ = MtPhoto
-		break
 	case MtVideoStr:
 		typ = MtVideo
-		break
 	case MtVoiceStr:
 		typ = MtVoice
-		break
 	case MtFileStr:
 		typ = MtFile
-		break
 	case MtTextAndPhotoStr:
 		typ = MtTextAndPhoto
-		break
 	case MtDynamicPhotoStr:
 		typ = MtDynamicPhoto
-		break
 	default:
 		panic(errors.WithStack(errors.New(fmt.Sprintf("错误的类型：%v", t))))
 	}
