@@ -10,14 +10,21 @@ package entities
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/pkg/errors"
 )
 
-type MessageEntity struct {
+type Message struct {
+	User        *BroadcastUser `json:"user"`         // 哪个用户发送的消息
+	Type        MType          `json:"type"`         // 请求或是来源的消息类型
+	MessageType MessageType    `json:"message_type"` // 消息类型
+	MsgContent  string         `json:"msg_content"`
+	MsgTime     time.Time      `json:"msg_time"`
 }
 
 type MessageType uint8
+type MType uint8
 type MessageTypeStr string
 
 /*
@@ -48,6 +55,11 @@ const (
 	MtVoiceStr        MessageTypeStr = "voice"
 	MtFileStr         MessageTypeStr = "file"
 	MtTextAndPhotoStr MessageTypeStr = "text_and_photo"
+
+	MsgTypeNormal MType = iota
+	MsgTypeSystem
+	MsgTypeError
+	MsgTypeUserList
 )
 
 // Parse 将类型MessageType转为MessageTypeStr类型

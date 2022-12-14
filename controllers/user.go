@@ -155,7 +155,7 @@ func (e *UserController) Login(c *gin.Context) {
 	c.JSON(200, userInfo)
 }
 
-// LoginByPhoneNumber
+// LoginBySender
 /**
  * @description: 使用手机号或电子邮件登录
  * @param {*gin.Context} c
@@ -191,7 +191,7 @@ func (e *UserController) LoginBySender(c *gin.Context) {
 	c.JSON(200, userInfo)
 }
 
-// PhoneNumber
+// SenderCheckCode
 /**
  * @description: 手机号验证且发送验证码
  * @param {*gin.Context} c

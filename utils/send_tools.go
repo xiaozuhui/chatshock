@@ -145,7 +145,6 @@ func (s PhoneNumber) SendMessage(st string, signName string, options ...interfac
 	}
 	// 获取签名和模版code
 	signDict := configs.Conf.PhoneConfig.SignTemplate[string(st)]
-	tplCode := signDict[signName]
 	// 获取模版字段
 	contDict := make(map[string]string, 0)
 	for _, option := range options {
@@ -155,6 +154,8 @@ func (s PhoneNumber) SendMessage(st string, signName string, options ...interfac
 	if err != nil {
 		return err
 	}
-	err = SendPhoneMessage(s.String(), signName, tplCode, content)
+	for signName, tplCode := range signDict {
+		err = SendPhoneMessage(s.String(), signName, tplCode, content)
+	}
 	return err
 }

@@ -11,8 +11,9 @@ package utils
 import (
 	"encoding/base64"
 	"errors"
-	"github.com/gofrs/uuid"
 	"strings"
+
+	"github.com/gofrs/uuid"
 
 	"golang.org/x/crypto/scrypt"
 )
@@ -30,10 +31,7 @@ type Salt []byte
  */
 func GenerateSalt(UUID uuid.UUID) Salt {
 	var nums []string
-	for _, n := range strings.Split(strings.ReplaceAll(UUID.String(), "-", ""), "") {
-		nums = append(nums, n)
-	}
-	res := make([]byte, 0, 0)
+	nums = append(nums, strings.Split(strings.ReplaceAll(UUID.String(), "-", ""), "")...)
 	n1 := nums[0] + nums[len(nums)-1]
 	n2 := nums[1] + nums[len(nums)-2]
 	n3 := nums[2] + nums[len(nums)-3]
@@ -42,7 +40,7 @@ func GenerateSalt(UUID uuid.UUID) Salt {
 	n6 := nums[5] + nums[len(nums)-6]
 	n7 := n1 + n6
 	n8 := n2 + n5
-	res = []byte(n1 + n2 + n3 + n4 + n5 + n6 + n7 + n8)
+	res := []byte(n1 + n2 + n3 + n4 + n5 + n6 + n7 + n8)
 	return res
 }
 

@@ -32,3 +32,16 @@ func TestSender(t *testing.T) {
 	// }
 	t.Log(sender)
 }
+
+func TestPhoneSend(t *testing.T) {
+	sender := utils.PhoneNumber{PhoneNumber: ""}
+	// err := sender.SendMessage("phone_register", "", utils.Options{FieldName: func() string {
+	// 	return "code"
+	// }, FieldValue: func() string {
+	// 	return "123456"
+	// }})
+	// if err != nil {
+	// 	t.Error(err)
+	// }
+	t.Log(sender)
+}

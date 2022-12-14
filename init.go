@@ -29,7 +29,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// InitDatabase
+// InitDatabase 初始化数据库
 /**
  * @description: 初始化数据库
  * @return {*}
@@ -56,7 +56,7 @@ func InitDatabase() {
 	fmt.Println("初始化数据库结束.")
 }
 
-// InitConfig
+// InitConfig 初始化配置，获取并解析configs中的配置文件
 /**
  * @description: 初始化配置，获取并解析configs中的配置文件
  * @param {string} configVersion
@@ -78,7 +78,7 @@ func InitConfig(configVersion string) *configs.Config {
 	return configs.Conf
 }
 
-// InitRedis
+// InitRedis 初始化redis
 /**
  * @description: 初始化redis
  * @return {*}
@@ -99,7 +99,7 @@ func InitRedis() *redis.Client {
 	return configs.RedisClient
 }
 
-// InitMinioClient
+// InitMinioClient 初始化minio，并获取其client
 /**
  * @description: 初始化minio，并获取其client
  * @return {*}
@@ -119,7 +119,7 @@ func InitMinioClient() *minio.Client {
 	return configs.MinioClient
 }
 
-// InitSmsClient
+// InitSmsClient 初始化短信工具，并获取其SMSClient
 /**
  * @description:  初始化短信工具，并获取其SMSClient
  * @return {*}
@@ -127,11 +127,11 @@ func InitMinioClient() *minio.Client {
  */
 func InitSmsClient() *smsapi.Client {
 	var err error
-	accessKeyId := tea.String(configs.Conf.PhoneConfig.AppKey)
+	accessKeyID := tea.String(configs.Conf.PhoneConfig.AppKey)
 	accessKeySecret := tea.String(configs.Conf.PhoneConfig.AppSecret)
 	host := configs.Conf.PhoneConfig.Host
 	_config := &openapi.Config{
-		AccessKeyId:     accessKeyId,
+		AccessKeyId:     accessKeyID,
 		AccessKeySecret: accessKeySecret,
 	}
 	// 访问的域名
