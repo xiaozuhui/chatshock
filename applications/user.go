@@ -101,7 +101,7 @@ func (a UserApplication) UpdateAvatar(userID uuid.UUID, avatar *multipart.FileHe
 	if err != nil {
 		return nil, err
 	}
-	imgInfo, err := utils.UploadFiles(userResp.PhoneNumber, avatar.Filename, avatar)
+	imgInfo, err := utils.UploadFiles(userResp.UUID.String(), avatar.Filename, avatar)
 	if err != nil {
 		return nil, err
 	}

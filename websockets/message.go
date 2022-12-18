@@ -1,4 +1,4 @@
-package entities
+package websockets
 
 /*
  * @Author: xiaozuhui
@@ -9,6 +9,7 @@ package entities
  */
 
 import (
+	"chatshock/entities"
 	"fmt"
 	"time"
 
@@ -16,11 +17,13 @@ import (
 )
 
 type Message struct {
-	User        *UserEntity `json:"user"`         // 哪个用户发送的消息
-	Type        MType       `json:"type"`         // 请求或是来源的消息类型
-	MessageType MessageType `json:"message_type"` // 消息类型
-	MsgContent  string      `json:"msg_content"`
-	MsgTime     time.Time   `json:"msg_time"`
+	User        *entities.UserEntity   `json:"user"`         // 哪个用户发送的消息
+	Type        MType                  `json:"type"`         // 请求或是来源的消息类型
+	MessageType MessageType            `json:"message_type"` // 消息类型
+	MsgContent  string                 `json:"msg_content"`  // 消息内容
+	Files       []*entities.FileEntity `json:"files"`        // 文件数组
+	SendTime    time.Time              `json:"send_time"`    // 发送时间
+	MsgTime     time.Time              `json:"msg_time"`     // 消息创建的时间
 }
 
 type MessageType uint8
@@ -111,4 +114,9 @@ func (t MessageTypeStr) Parse() MessageType {
 		panic(errors.WithStack(errors.New(fmt.Sprintf("错误的类型：%v", t))))
 	}
 	return typ
+}
+
+// NewMessage 创建新数据，将
+func NewMessage(user *User, params map[string]string) *Message {
+	return nil
 }

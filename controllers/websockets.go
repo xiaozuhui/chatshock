@@ -1,16 +1,16 @@
 package controllers
 
 import (
-	"chatshock/entities"
 	"chatshock/middlewares"
+	"chatshock/services"
 	"chatshock/utils"
-	"log"
+	"chatshock/websockets"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 	"nhooyr.io/websocket"
-	"nhooyr.io/websocket/wsjson"
 )
 
 /*
@@ -25,21 +25,24 @@ type ChatRoomController struct {
 }
 
 func (e *ChatRoomController) Router(engine *gin.Engine) {
-	cr := engine.Group("/ws/chatroom")
+	cr := engine.Group("/ws")
 	cr.Use(middlewares.JWTAuth())
-	cr.GET(":room_id", e.EnterChat)
+	cr.GET("", e.LinkWebsocket)
+	crH := engine.Group("/v1/chatroom")
+	crH.Use(middlewares.JWTAuth())
+	crH.GET(":room_id")
 }
 
-// EnterChat 进入聊天室
-func (e *ChatRoomController) EnterChat(c *gin.Context) {
+// LinkWebsocket 连接websocket
+func (e *ChatRoomController) LinkWebsocket(c *gin.Context) {
+	userService := services.UserFactory()
 	var UserID uuid.UUID
 	if claims, ok := c.Get("claims"); ok {
 		UserID = claims.(utils.UserClaims).UUID
 	} else {
 		panic(errors.WithStack(errors.New("用户不存在")))
 	}
-	id := c.Param("room_id")
-	roomID, err := uuid.FromString(id)
+	userEntity, err := userService.UserRepo.FindUser(UserID)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
@@ -52,15 +55,17 @@ func (e *ChatRoomController) EnterChat(c *gin.Context) {
 	defer func(conn *websocket.Conn, code websocket.StatusCode, reason string) {
 		err := conn.Close(code, reason)
 		if err != nil {
-			
+			log.Error(err)
 		}
 	}(conn, websocket.StatusInternalError, "")
 	// 保存链接
-	chatUser := entities.ChatRoomUser{UserID: UserID, Conn: conn}
+	chatUser := websockets.NewUser(UserID, userEntity, conn)
+	// 获取到用户加入的所有聊天室
+	// 开启给用户发消息的goroutine
+	go chatUser.SendMessage(c)
 	// 获取数据或是推出数据
 	for {
-		var v interface{}
-		wsjson.Read(c, conn, &v)
+
 	}
 	// ctx, cancel := context.WithTimeout(c, time.Second*10)
 	// defer cancel()
