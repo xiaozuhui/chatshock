@@ -47,13 +47,44 @@ func (s FileService) GetFile(id uuid.UUID) (*entities.FileEntity, error) {
 	return file, nil
 }
 
+func (s FileService) GetFiles(ids []uuid.UUID) ([]*entities.FileEntity, error) {
+	files, err := s.FileRepo.GetFiles(ids)
+	if err != nil {
+		return nil, err
+	}
+	// 检查访问URL是否过期
+	updateFiles := make(map[uuid.UUID]*entities.FileEntity, 0)
+	for _, file := range files {
+		now := time.Now()
+		if now.After(*file.URLExpireTime) {
+			// 如果now大于过期时间，那么需要重新获取minio的url
+			url_, err := utils.GetFileUrl(file.Bucket, file.FileName)
+			if err != nil {
+				return nil, err
+			}
+			// 保存到数据库
+			file.FileURL = url_.String()
+			et := file.URLExpireTime.Add(utils.Expires)
+			file.URLExpireTime = &et
+			updateFiles[file.UUID] = file
+		}
+	}
+	if len(updateFiles) > 0 {
+		files, err = s.FileRepo.UpdateFiles(updateFiles)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return files, nil
+}
+
 // SaveFile 已经在方法外部，上传了文件
 func (s FileService) SaveFile(info *minio.UploadInfo,
-	fileType, contentType string) (*entities.FileEntity, error) {
+	fileType entities.FileTypeStr, contentType string) (*entities.FileEntity, error) {
 	file := &entities.FileEntity{}
 	file.Bucket = info.Bucket
 	file.FileName = info.Key
-	file.FileType = entities.FileTypeStr(fileType)
+	file.FileType = fileType
 	file.ContentType = contentType
 	url_, err := utils.GetFileUrl(info.Bucket, info.Key)
 	if err != nil {
@@ -78,12 +109,12 @@ func (s FileService) SaveFiles(infos []map[string]interface{}) ([]*entities.File
 	fileEntities := make([]*entities.FileEntity, 0, 0)
 	for _, info := range infos {
 		uploadInfo := info["info"].(*minio.UploadInfo)
-		fileType := info["file_type"].(string)
+		fileType := info["file_type"].(entities.FileTypeStr)
 		contentType := info["content_type"].(string)
 		file := &entities.FileEntity{}
 		file.Bucket = uploadInfo.Bucket
 		file.FileName = uploadInfo.Key
-		file.FileType = entities.FileTypeStr(fileType)
+		file.FileType = fileType
 		file.ContentType = contentType
 		url_, err := utils.GetFileUrl(uploadInfo.Bucket, uploadInfo.Key)
 		if err != nil {

@@ -4,7 +4,7 @@ package applications
  * @Author: xiaozuhui
  * @Date: 2022-12-02 12:22:19
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-12-13 16:48:22
+ * @LastEditTime: 2022-12-21 09:06:11
  * @Description:
  */
 
@@ -49,7 +49,7 @@ func (a UserApplication) Register(userEntity entities.UserEntity) (*services.Use
 		return nil, errors.New("该电子邮箱已经被注册")
 	}
 	// 创建默认头像
-	img, err := utils.GenerateAvatar(userEntity.UUID)
+	img, err := utils.GenerateAvatar(userEntity.NickName)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (a UserApplication) Register(userEntity entities.UserEntity) (*services.Use
 		return nil, err
 	}
 	// 保存文件信息
-	fileEntity, err := a.FileService.SaveFile(uploadInfo, string(entities.PhotoStr), "application/png")
+	fileEntity, err := a.FileService.SaveFile(uploadInfo, entities.PhotoStr, "application/png")
 	if err != nil {
 		return nil, err
 	}

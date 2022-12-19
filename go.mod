@@ -15,7 +15,12 @@ require (
 
 require github.com/issue9/identicon/v2 v2.1.1
 
-require nhooyr.io/websocket v1.8.7 // indirect
+require (
+	github.com/disintegration/letteravatar v0.0.0-20160912210445-1a457b860450 // indirect
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
+	golang.org/x/image v0.0.0-20190802002840-cff245a6509b // indirect
+	nhooyr.io/websocket v1.8.7 // indirect
+)
 
 require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect

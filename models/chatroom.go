@@ -8,10 +8,10 @@ import (
 
 type ChatroomModel struct {
 	BaseModel
-	Name        string `json:"name" gorm:"type:char(512)"`
-	Description string `json:"description" gorm:"type:char(512)"`
-	Users       map[uuid.UUID]*UserModel
-	Master      *UserModel `json:"master"`
+	Name        string                   `json:"name" gorm:"type:char(512)"`
+	Description string                   `json:"description" gorm:"type:char(512)"`
+	Users       map[uuid.UUID]*UserModel `json:"users" gorm:"-"`
+	Master      *UserModel               `json:"master" gorm:"-"`
 }
 
 func (m ChatroomModel) ModelToEntity() interface{} {

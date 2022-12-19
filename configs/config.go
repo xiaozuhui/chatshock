@@ -29,6 +29,17 @@ type Config struct {
 	EmailConfig *EmailConfig `json:"email_config"`
 }
 
+func (c *Config) String() string {
+	return fmt.Sprintf(`
+    AppConfig: {
+        "AppName": %s,
+        "AppHost": %s,
+        "AppPort": %s,
+        "IsDebug": %v,
+    }
+	`, Conf.AppConfig.AppName, Conf.AppConfig.AppHost, Conf.AppConfig.AppPort, Conf.AppConfig.IsDebug)
+}
+
 type PhoneConfig struct {
 	Host         string                       `json:"host"`
 	AppKey       string                       `json:"app_key"`

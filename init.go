@@ -13,7 +13,7 @@ import (
 	"chatshock/models"
 	"context"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 
@@ -36,24 +36,24 @@ import (
  * @author: xiaozuhui
  */
 func InitDatabase() {
-	fmt.Println("初始化数据库开始...")
+	log.Info("初始化数据库开始...")
 	var err error
 	dbConfig := configs.Conf.DBConfig
-
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=Asia/Shanghai",
 		dbConfig.DBHost, dbConfig.DBUser, dbConfig.DBPass, dbConfig.DBName, dbConfig.DBPort, dbConfig.SSLMode)
 	configs.DBEngine, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		fmt.Println(err.Error())
+		panic(errors.WithStack(err))
 	}
 	if configs.DBEngine == nil {
-		fmt.Println("DB 为nil")
+		panic(errors.WithStack(errors.New("DB 初始化失败.")))
 	}
 	err = models.InitModel()
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Error(err.Error())
+		panic(errors.WithStack(err))
 	}
-	fmt.Println("初始化数据库结束.")
+	log.Info("初始化数据库结束.")
 }
 
 // InitConfig 初始化配置，获取并解析configs中的配置文件
@@ -64,6 +64,7 @@ func InitDatabase() {
  * @author: xiaozuhui
  */
 func InitConfig(configVersion string) *configs.Config {
+	log.Info("初始化Config配置...")
 	configs.Conf = &configs.Config{}
 	configs.BaseDir, _ = os.Getwd()
 	viper.SetConfigName(configVersion)
@@ -71,10 +72,11 @@ func InitConfig(configVersion string) *configs.Config {
 	viper.SetConfigFile(filepath.Join(configs.BaseDir, "configs", configVersion+".yaml"))
 	err := viper.ReadInConfig()
 	if err != nil {
-		fmt.Println(err.Error())
-		return nil
+		panic(errors.WithStack(err))
 	}
 	configs.Conf.Parse(viper.GetViper())
+	log.Info("初始化Config配置完毕.")
+	log.Infof("获取的配置为：%s", configs.Conf.String())
 	return configs.Conf
 }
 
@@ -85,6 +87,7 @@ func InitConfig(configVersion string) *configs.Config {
  * @author: xiaozuhui
  */
 func InitRedis() *redis.Client {
+	log.Info("初始化Redis客户端...")
 	redisConfig := configs.Conf.RedisConfig
 	configs.RedisClient = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", redisConfig.RedisHost, redisConfig.RedisPort),
@@ -96,6 +99,7 @@ func InitRedis() *redis.Client {
 		fmt.Println("redis链接不上")
 		return nil
 	}
+	log.Info("Redis客户端初始化完毕.")
 	return configs.RedisClient
 }
 
@@ -106,6 +110,7 @@ func InitRedis() *redis.Client {
  * @author: xiaozuhui
  */
 func InitMinioClient() *minio.Client {
+	log.Info("初始化minio客户端...")
 	var err error
 	configs.MinioClient, err = minio.New(configs.Conf.MinioConfig.EndPoint, &minio.Options{
 		Creds: credentials.NewStaticV4(configs.Conf.MinioConfig.AccessKeyID,
@@ -114,8 +119,9 @@ func InitMinioClient() *minio.Client {
 	})
 	if err != nil {
 		log.Fatal(errors.WithStack(err))
-		return nil
+		panic(errors.WithStack(err))
 	}
+	log.Info("minio客户端初始化完毕")
 	return configs.MinioClient
 }
 
