@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
+	"strings"
 	"time"
 )
 
@@ -25,11 +26,13 @@ const (
 	Video
 	Voice
 	Document
+	Binary
 
 	PhotoStr    FileTypeStr = "photo"
-	VideoStr    FileTypeStr = "video"
-	VoiceStr    FileTypeStr = "voice"
-	DocumentStr FileTypeStr = "document"
+	VideoStr                = "video"
+	VoiceStr                = "voice"
+	DocumentStr             = "document"
+	BinaryStr               = "binary"
 )
 
 func (t FileType) Parse() FileTypeStr {
@@ -37,16 +40,14 @@ func (t FileType) Parse() FileTypeStr {
 	switch t {
 	case Photo:
 		ft = PhotoStr
-		break
 	case Video:
 		ft = VideoStr
-		break
 	case Voice:
 		ft = VoiceStr
-		break
 	case Document:
 		ft = DocumentStr
-		break
+	case Binary:
+		ft = BinaryStr
 	default:
 		panic(errors.WithStack(errors.New(fmt.Sprintf("错误的文件类型: %v", t))))
 	}
@@ -58,18 +59,37 @@ func (t FileTypeStr) Parse() FileType {
 	switch t {
 	case PhotoStr:
 		ft = Photo
-		break
 	case VideoStr:
 		ft = Video
-		break
 	case VoiceStr:
 		ft = Voice
-		break
 	case DocumentStr:
 		ft = Document
-		break
+	case BinaryStr:
+		ft = Binary
 	default:
 		panic(errors.WithStack(errors.New(fmt.Sprintf("错误的文件类型: %v", t))))
 	}
 	return ft
+}
+
+func ContentType2FileType(contentType string) (FileTypeStr, error) {
+	splits := strings.Split(contentType, "/")
+	if len(splits) < 2 {
+		return "", errors.New(fmt.Sprintf("上传文件的ContentType[%s]不明", contentType))
+	}
+	var fileType FileTypeStr
+	switch splits[0] {
+	case "text":
+		fileType = DocumentStr
+	case "video":
+		fileType = VideoStr
+	case "audio":
+		fileType = VoiceStr
+	case "image":
+		fileType = PhotoStr
+	case "application":
+		fileType = BinaryStr
+	}
+	return fileType, nil
 }

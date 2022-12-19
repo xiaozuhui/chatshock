@@ -5,7 +5,9 @@ import (
 	"chatshock/services"
 	"chatshock/utils"
 	"chatshock/websockets"
+	"context"
 	log "github.com/sirupsen/logrus"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -21,20 +23,17 @@ import (
  * @Description: 聊天室相关的websocket路由函数
  */
 
-type ChatRoomController struct {
+type WebSocketController struct {
 }
 
-func (e *ChatRoomController) Router(engine *gin.Engine) {
+func (e *WebSocketController) Router(engine *gin.Engine) {
 	cr := engine.Group("/ws")
 	cr.Use(middlewares.JWTAuth())
 	cr.GET("", e.LinkWebsocket)
-	crH := engine.Group("/v1/chatroom")
-	crH.Use(middlewares.JWTAuth())
-	crH.GET(":room_id")
 }
 
 // LinkWebsocket 连接websocket
-func (e *ChatRoomController) LinkWebsocket(c *gin.Context) {
+func (e *WebSocketController) LinkWebsocket(c *gin.Context) {
 	userService := services.UserFactory()
 	var UserID uuid.UUID
 	if claims, ok := c.Get("claims"); ok {
@@ -58,21 +57,17 @@ func (e *ChatRoomController) LinkWebsocket(c *gin.Context) {
 			log.Error(err)
 		}
 	}(conn, websocket.StatusInternalError, "")
+	// 获取超时十秒的子context，后续收发操作都使用该子context
+	ctx, cancel := context.WithTimeout(c, time.Second*10)
+	defer cancel()
 	// 保存链接
 	chatUser := websockets.NewUser(UserID, userEntity, conn)
-	// 获取到用户加入的所有聊天室
 	// 开启给用户发消息的goroutine
-	go chatUser.SendMessage(c)
-	// 获取数据或是推出数据
-	for {
-
+	go chatUser.SendMessage(ctx)
+	// 阻塞获取ws数据
+	err = chatUser.ReceiveMessage(ctx)
+	if err != nil {
+		panic(errors.WithStack(err))
 	}
-	// ctx, cancel := context.WithTimeout(c, time.Second*10)
-	// defer cancel()
-	// var v interface{}
-	// err = wsjson.Read(ctx, conn, &v)
-	// if err != nil {
-	// 	log.Fatal(err.Error())
-	// }
-	// log.Printf("received: %v", v)
+	c.JSON(200, gin.H{})
 }

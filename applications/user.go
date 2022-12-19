@@ -63,7 +63,7 @@ func (a UserApplication) Register(userEntity entities.UserEntity) (*services.Use
 		return nil, err
 	}
 	// 保存文件信息
-	fileEntity, err := a.FileService.SaveFile(uploadInfo, string(entities.PhotoStr), "application/png")
+	fileEntity, err := a.FileService.SaveFile(uploadInfo, entities.PhotoStr, "application/png")
 	if err != nil {
 		return nil, err
 	}

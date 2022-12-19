@@ -52,7 +52,7 @@ func (u *User) SendMessage(ctx context.Context) {
 // ReceiveMessage 从前端获取websocket数据
 func (u *User) ReceiveMessage(ctx context.Context) error {
 	var (
-		receiveMsg map[string]string
+		receiveMsg map[string]interface{}
 		err        error
 	)
 	for {
@@ -64,8 +64,11 @@ func (u *User) ReceiveMessage(ctx context.Context) error {
 			}
 			return err
 		}
-		sendMsg := NewMessage(u, receiveMsg)
-		// 判断类型，发送到私信还是发送到聊天室
+		sendMsg, err := NewMessage(u, receiveMsg)
+		if err != nil {
+			return err
+		}
+		// 判断类型，发送到私信还是发送到聊天室，通过broadcast发送
 
 	}
 }
