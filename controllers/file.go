@@ -73,10 +73,16 @@ func (e *FileController) UploadFiles(c *gin.Context) {
 		if err != nil {
 			panic(errors.WithStack(err))
 		}
+		contentType := f.Header.Get("Content-Type")
+		fileType, err := entities.ContentType2FileType(contentType)
+		if err != nil {
+
+			panic(errors.WithStack(err))
+		}
 		fileInfo = append(fileInfo, map[string]interface{}{
 			"info":         uploadInfo,
-			"file_type":    entities.ContentType2FileType(f.Header.Get("Content-Type")),
-			"content_type": f.Header.Get("Content-Type"),
+			"file_type":    fileType,
+			"content_type": contentType,
 		})
 	}
 	files, err := fileService.SaveFiles(fileInfo)

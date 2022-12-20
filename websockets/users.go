@@ -3,6 +3,7 @@ package websockets
 import (
 	"chatshock/entities"
 	"context"
+	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -69,6 +70,6 @@ func (u *User) ReceiveMessage(ctx context.Context) error {
 			return err
 		}
 		// 判断类型，发送到私信还是发送到聊天室，通过broadcast发送
-
+		fmt.Println(sendMsg)
 	}
 }

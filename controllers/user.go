@@ -32,7 +32,7 @@ func (e *UserController) Router(engine *gin.Engine) {
 	userGroup.POST("/login/by_contract", e.LoginBySender)       // 手机号登陆
 	userGroup.POST("/register", e.Register)                     // 注册
 	userGroup.POST("/valid/send_valid_code", e.SenderCheckCode) // 发送手机验证码
-	userGroup.POST("/valid/check_valid_code", e.CheckValidCode) // 验证验证码
+	userGroup.POST("/valid/check_valid_code", e.CheckValidCode) // 验证验证码 TODO 验证通过后需要在redis中增加这个账号的数据，以便在注册操作时的二次验证
 
 	accountGroup := engine.Group("/v1/account")
 	accountGroup.Use(middlewares.JWTAuth())
@@ -211,14 +211,14 @@ func (e *UserController) SenderCheckCode(c *gin.Context) {
 	var st string
 	var sender interfaces.ISender
 	if userAuth.PhoneNumber != "" {
-		_, err = userService.GetUserByPhoneNumber(userAuth.PhoneNumber)
+		_, err := userService.GetUserByPhoneNumber(userAuth.PhoneNumber)
 		if err != nil {
 			panic(errors.WithStack(err))
 		}
 		sender = utils.PhoneNumber{PhoneNumber: userAuth.PhoneNumber}
 		st = utils.PhoneRegister
 	} else if userAuth.EmailAddress != "" {
-		_, err = userService.UserRepo.FindUserByEmail(userAuth.EmailAddress)
+		_, err := userService.GetUserByEmailAddress(userAuth.EmailAddress)
 		if err != nil {
 			panic(errors.WithStack(err))
 		}

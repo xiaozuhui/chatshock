@@ -13,14 +13,19 @@ import (
 	"chatshock/middlewares"
 	"flag"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"os"
 )
 
 func init() {
-	log.SetFormatter(&log.JSONFormatter{})
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors:   false,
+		TimestampFormat: "2006-01-02 15:04:05",
+		ForceQuote:      true,
+	})
 	log.SetOutput(os.Stdout)
-	log.SetLevel(log.WarnLevel)
+	log.SetLevel(log.DebugLevel)
 }
 
 func main() {
@@ -39,6 +44,6 @@ func main() {
 	runHost := configs.Conf.AppConfig.AppHost + ":" + configs.Conf.AppConfig.AppPort
 	err := r.Run(runHost)
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal(errors.WithStack(err))
 	}
 }

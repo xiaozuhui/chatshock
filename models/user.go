@@ -22,7 +22,7 @@ type UserModel struct {
 	PhoneNumber  string              `json:"phone_number" gorm:"type:char(11);"`  // 手机号码将作为唯一标识
 	Email        string              `json:"email" gorm:"type:char(512);"`        // 邮箱地址，也可作为唯一标识
 	Introduction string              `json:"introduction" gorm:"type:char(1024)"` // 自我介绍
-	Avatar       *FileModel          `json:"avatar"`                              // 头像可能即存文件名称
+	Avatar       *FileModel          `json:"avatar" gorm:"-"`                     // 头像可能即存文件名称
 	LastLogin    time.Time           `json:"last_login"`                          // 最后一次登录
 	Gender       entities.GenderType `json:"gender" gorm:"type:integer"`          // 性别
 }

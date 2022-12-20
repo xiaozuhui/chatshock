@@ -15,6 +15,7 @@ import (
 	"chatshock/services/resp"
 	"chatshock/utils"
 	"errors"
+	"gorm.io/gorm"
 
 	"github.com/gofrs/uuid"
 )
@@ -111,10 +112,25 @@ func (s UserService) Login(contact interfaces.ISender) (*UserInfo, error) {
 func (s UserService) GetUserByPhoneNumber(phoneNumber string) (*resp.User, error) {
 	user, err := s.UserRepo.FindUserByPhoneNumber(phoneNumber)
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
-	if user == nil {
-		return nil, errors.New("该手机号没有注册")
+	userResp, err := resp.MakeUser(*user)
+	if err != nil {
+		return nil, err
+	}
+	return userResp, nil
+}
+
+func (s UserService) GetUserByEmailAddress(emailAddress string) (*resp.User, error) {
+	user, err := s.UserRepo.FindUserByEmail(emailAddress)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
 	}
 	userResp, err := resp.MakeUser(*user)
 	if err != nil {

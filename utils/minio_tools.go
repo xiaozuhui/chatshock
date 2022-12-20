@@ -20,7 +20,7 @@ import (
 	"github.com/minio/minio-go/v7"
 )
 
-const Expires = time.Second * 24 * 60 * 60 * 30
+const Expires = time.Second * 24 * 60 * 60 * 7
 
 // MakeBucket
 /**

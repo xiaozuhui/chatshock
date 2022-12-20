@@ -16,12 +16,16 @@ import (
 	"github.com/issue9/identicon/v2"
 	"image/color"
 	"image/png"
+	"math/rand"
+	"strings"
 )
 
 func GenerateAvatar(UUID uuid.UUID) (*bytes.Buffer, error) {
-	ident := identicon.New(identicon.Style2, 128, color.NRGBA{}, color.NRGBA{})
+	ident := identicon.New(identicon.Style2, 128, color.NRGBA{}, color.NRGBA{}, color.NRGBA{}, color.NRGBA{})
 	pnMD5 := fmt.Sprintf("%v", md5.Sum([]byte(UUID.String())))
-	img := ident.Make([]byte(pnMD5))
+	aNum := strings.Split(pnMD5, "a")
+	img := ident.Rand(rand.New(rand.NewSource(int64(len(aNum) + 100))))
+	img = ident.Make([]byte("192.168.1.1"))
 	buff := bytes.Buffer{}
 	err := png.Encode(&buff, img)
 	if err != nil {

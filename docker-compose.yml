@@ -31,8 +31,10 @@ services:
       - "29091:9001"
     environment:
       MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: admin
+      MINIO_ROOT_PASSWORD: admin123456
       MINIO_PROMETHEUS_AUTH_TYPE: public
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123456
     volumes:
       - $HOME/data/minio2/data:/data #映射当前目录下的data目录至容器内/data目录
       - $HOME/data/minio2/config:/root/.minio/ #映射配置目录

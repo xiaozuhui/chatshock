@@ -49,7 +49,7 @@ func (e *WebSocketController) LinkWebsocket(c *gin.Context) {
 	conn, err := websocket.Accept(c.Writer, c.Request,
 		&websocket.AcceptOptions{InsecureSkipVerify: true})
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatal(errors.WithStack(err))
 	}
 	defer func(conn *websocket.Conn, code websocket.StatusCode, reason string) {
 		err := conn.Close(code, reason)
