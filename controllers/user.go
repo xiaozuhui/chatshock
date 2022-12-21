@@ -4,7 +4,7 @@ package controllers
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:33:56
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-12-13 16:47:49
+ * @LastEditTime: 2022-12-21 16:25:03
  * @Description:
  */
 
@@ -15,6 +15,7 @@ import (
 	"chatshock/middlewares"
 	"chatshock/services"
 	"chatshock/utils"
+	"fmt"
 
 	"github.com/gofrs/uuid"
 
@@ -61,6 +62,34 @@ func (e *UserController) Register(c *gin.Context) {
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
+	// 验证
+	var sender interfaces.ISender
+	switch userParam.RegisterType {
+	case "phone_number":
+		if userParam.PhoneNumber != "" {
+			sender = utils.PhoneNumber{PhoneNumber: userParam.PhoneNumber}
+		}
+	case "email":
+		if userParam.EmailAddress != "" {
+			sender = utils.EmailAddress{EmailAddress: userParam.EmailAddress}
+		}
+	default:
+		if userParam.PhoneNumber != "" {
+			sender = utils.PhoneNumber{PhoneNumber: userParam.PhoneNumber}
+		} else if userParam.EmailAddress != "" {
+			sender = utils.EmailAddress{EmailAddress: userParam.EmailAddress}
+		} else {
+			panic(errors.WithStack(errors.New("手机号和电子邮件不能同时为空")))
+		}
+	}
+	isCheck, err := utils.RedisStrGet(sender.String() + "_checked")
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	if isCheck == nil || *isCheck != "OK" {
+		panic(errors.WithStack(errors.New(fmt.Sprintf("手机号或是电子邮件 %s 验证错误", sender.String()))))
+	}
+	// 创建账号
 	userApplication := applications.NewUserApplication()
 	userID, err := uuid.NewV4()
 	if err != nil {
@@ -106,9 +135,13 @@ func (e *UserController) CheckValidCode(c *gin.Context) {
 	} else {
 		panic(errors.WithStack(errors.New("手机号和电子邮件不能同时为空")))
 	}
-
 	err = utils.CheckValidCode(sender, userAuth.ValidCode)
 	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	_, err = utils.RedisSet(sender.String()+"_checked", "OK", nil)
+	if err != nil {
+		utils.RedisDelete(sender.String() + "_checked")
 		panic(errors.WithStack(err))
 	}
 	c.JSON(200, gin.H{"code": 1, "msg": "验证通过"})

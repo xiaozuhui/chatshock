@@ -1,8 +1,17 @@
 package models
 
+/*
+ * @Author: xiaozuhui
+ * @Date: 2022-12-21 10:06:17
+ * @LastEditors: xiaozuhui
+ * @LastEditTime: 2022-12-21 14:52:20
+ * @Description:
+ */
+
 import (
 	"chatshock/custom"
 	"chatshock/entities"
+
 	"github.com/gofrs/uuid"
 )
 
@@ -40,19 +49,3 @@ func EntityToChatroomModel(e *entities.ChatRoom) (*ChatroomModel, error) {
 }
 
 var _ custom.IModel = ChatroomModel{}
-
-//func (m ChatRoomUser) ModelToEntity() interface{} {
-//	chatRoomUser := &entities.ChatRoomUser{}
-//	chatRoomUser.UserID = m.UserID
-//	chatRoomUser.EnterAt = m.EnterAt
-//	chatRoomUser.LeaveAt = m.LeaveAt
-//	chatRoomUser.IPAddress = m.IPAddress
-//	return chatRoomUser
-//}
-//
-//type ChatRoomUser struct {
-//	UserID    uuid.UUID  `json:"uuid" gorm:"type:char(36);primary_key"`
-//	EnterAt   time.Time  `json:"enter_at"` // 加入聊天室的时间
-//	LeaveAt   *time.Time `json:"leave_at"` // 离开聊天室的时间
-//	IPAddress string     `json:"ip_address"`
-//}
