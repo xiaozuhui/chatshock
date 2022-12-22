@@ -4,7 +4,7 @@ package utils
  * @Author: xiaozuhui
  * @Date: 2022-10-31 10:52:31
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-12-12 16:45:31
+ * @LastEditTime: 2022-12-21 16:16:55
  * @Description:
  */
 
@@ -43,6 +43,13 @@ func RedisSet(k string, v interface{}, expTime *time.Duration) (string, error) {
 		return "", err
 	}
 	return result, nil
+}
+
+func RedisDelete(k string) error {
+	redisClient := configs.RedisClient
+	ctx := context.Background()
+	_, err := redisClient.Del(ctx, k).Result()
+	return err
 }
 
 func RedisStrGet(k string) (*string, error) {

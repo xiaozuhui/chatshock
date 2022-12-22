@@ -4,7 +4,7 @@ package main
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:17:18
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-12-15 10:41:20
+ * @LastEditTime: 2022-12-22 10:19:45
  * @Description:
  */
 
@@ -12,10 +12,11 @@ import (
 	"chatshock/configs"
 	"chatshock/middlewares"
 	"flag"
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"os"
 )
 
 func init() {
@@ -34,12 +35,11 @@ func main() {
 	flag.Parse()
 	var r = gin.New()
 	r.Use(middlewares.AccessLog())
-	r.Use(middlewares.Recovery())
+	r.Use(gin.Recovery())
 	InitConfig(configVersion)
 	InitDatabase()
 	InitRedis()
 	InitMinioClient()
-	InitSmsClient()
 	InitRouters(r)
 	runHost := configs.Conf.AppConfig.AppHost + ":" + configs.Conf.AppConfig.AppPort
 	err := r.Run(runHost)

@@ -4,7 +4,7 @@ package applications
  * @Author: xiaozuhui
  * @Date: 2022-12-02 12:22:19
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-12-13 16:48:22
+ * @LastEditTime: 2022-12-21 09:06:11
  * @Description:
  */
 
@@ -40,16 +40,12 @@ func NewUserApplication() UserApplication {
  * @author: xiaozuhui
  */
 func (a UserApplication) Register(userEntity entities.UserEntity) (*services.UserInfo, error) {
-	_, err := a.UserService.UserRepo.FindUserByPhoneNumber(userEntity.PhoneNumber)
-	if err != gorm.ErrRecordNotFound {
-		return nil, errors.New("该手机号码已经被注册")
-	}
-	_, err = a.UserService.UserRepo.FindUserByEmail(userEntity.Email)
+	_, err := a.UserService.UserRepo.FindUserByEmail(userEntity.Email)
 	if err != gorm.ErrRecordNotFound {
 		return nil, errors.New("该电子邮箱已经被注册")
 	}
 	// 创建默认头像
-	img, err := utils.GenerateAvatar(userEntity.UUID)
+	img, err := utils.GenerateAvatar(userEntity.NickName)
 	if err != nil {
 		return nil, err
 	}
@@ -114,9 +110,8 @@ func (a UserApplication) UpdateAvatar(userID uuid.UUID, avatar *multipart.FileHe
 		BaseEntity: entities.BaseEntity{
 			UUID: userResp.UUID,
 		},
-		PhoneNumber: userResp.PhoneNumber,
-		Email:       userResp.Email,
-		Avatar:      fileEntity,
+		Email:  userResp.Email,
+		Avatar: fileEntity,
 	}
 	err = a.UserService.UpdateAccount(&userEntity)
 	if err != nil {

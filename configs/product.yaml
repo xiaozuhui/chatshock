@@ -16,16 +16,6 @@ redis:
   redis_host: localhost
   redis_port: 26379
 
-phone:
-  app_key: ""
-  app_secret: ""
-  host: "dysmsapi.aliyuncs.com"
-
-aliyuntplcodes:
-  - send_type: "phone_register"
-    sign_name: ""
-    template_code: ""
-
 email:
   email_smtp: smtp.qq.com
   from_address:
@@ -33,7 +23,7 @@ email:
   from_name: "xiaozuhui"
 
 minio:
-  end_point: "http://localhost:29091/"
+  end_point: "localhost:29090"
   access_key_id: "quBdOrmVTXxS6UaH"
   secret_access_key: "6Dbdk1CLG9xM96IpB51A4xycFOIrhA9A"
-  use_ssl: true
+  use_ssl: false

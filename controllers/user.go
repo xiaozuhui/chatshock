@@ -4,7 +4,7 @@ package controllers
  * @Author: xiaozuhui
  * @Date: 2022-10-31 09:33:56
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2022-12-13 16:47:49
+ * @LastEditTime: 2022-12-22 10:43:08
  * @Description:
  */
 
@@ -15,6 +15,7 @@ import (
 	"chatshock/middlewares"
 	"chatshock/services"
 	"chatshock/utils"
+	"fmt"
 
 	"github.com/gofrs/uuid"
 
@@ -32,15 +33,14 @@ func (e *UserController) Router(engine *gin.Engine) {
 	userGroup.POST("/login/by_contract", e.LoginBySender)       // 手机号登陆
 	userGroup.POST("/register", e.Register)                     // 注册
 	userGroup.POST("/valid/send_valid_code", e.SenderCheckCode) // 发送手机验证码
-	userGroup.POST("/valid/check_valid_code", e.CheckValidCode) // 验证验证码 TODO 验证通过后需要在redis中增加这个账号的数据，以便在注册操作时的二次验证
+	userGroup.POST("/valid/check_valid_code", e.CheckValidCode) // 验证验证码
 
 	accountGroup := engine.Group("/v1/account")
 	accountGroup.Use(middlewares.JWTAuth())
-	accountGroup.GET("/:id", e.GetAccount)                     // 获取账号信息
-	accountGroup.PUT("/:id", e.UpdateAccount)                  // 更新账号信息
-	accountGroup.POST("/:id/avatar", e.UpdateAvatar)           // 更新头像
-	accountGroup.PUT("/:id/phone_number", e.RebindPhoneNumber) // 更新手机号
-	accountGroup.PUT("/:id/reset_password", e.ResetPassword)   // 找回密码
+	accountGroup.GET("/:id", e.GetAccount)                   // 获取账号信息
+	accountGroup.PUT("/:id", e.UpdateAccount)                // 更新账号信息
+	accountGroup.POST("/:id/avatar", e.UpdateAvatar)         // 更新头像
+	accountGroup.PUT("/:id/reset_password", e.ResetPassword) // 找回密码
 }
 
 // Register
@@ -53,14 +53,27 @@ func (e *UserController) Register(c *gin.Context) {
 	userParam := struct {
 		NickName     string `json:"nickname"`
 		Password     string `json:"password"`
-		PhoneNumber  string `json:"phone_number"`
 		EmailAddress string `json:"email_address"`
-		RegisterType string `json:"register_type"` // 验证类型，手机号或是电子邮箱
 	}{}
 	err := c.Bind(&userParam)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
+	// 验证
+	var sender interfaces.ISender
+	if userParam.EmailAddress != "" {
+		sender = utils.EmailAddress{EmailAddress: userParam.EmailAddress}
+	} else {
+		panic(errors.WithStack(errors.New("电子邮件不能为空")))
+	}
+	isCheck, err := utils.RedisStrGet(sender.String() + utils.EmailRegisterCode.String() + "_checked")
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	if isCheck == nil || *isCheck != "OK" {
+		panic(errors.WithStack(errors.New(fmt.Sprintf("手机号或是电子邮件 %s 验证错误", sender.String()))))
+	}
+	// 创建账号
 	userApplication := applications.NewUserApplication()
 	userID, err := uuid.NewV4()
 	if err != nil {
@@ -70,10 +83,9 @@ func (e *UserController) Register(c *gin.Context) {
 		BaseEntity: entities.BaseEntity{
 			UUID: userID,
 		},
-		NickName:    userParam.NickName,
-		Password:    userParam.Password,
-		PhoneNumber: userParam.PhoneNumber,
-		Email:       userParam.EmailAddress,
+		NickName: userParam.NickName,
+		Password: userParam.Password,
+		Email:    userParam.EmailAddress,
 	}
 	userInfo, err := userApplication.Register(userEntity)
 	if err != nil {
@@ -90,25 +102,29 @@ func (e *UserController) Register(c *gin.Context) {
  */
 func (e *UserController) CheckValidCode(c *gin.Context) {
 	userAuth := struct {
-		PhoneNumber  string `json:"phone_number"`
 		EmailAddress string `json:"email_address"`
 		ValidCode    string `json:"valid_code"`
+		CheckFor     string `json:"check_for"` // TODO 检查的类型
 	}{}
 	err := c.Bind(&userAuth)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
 	var sender interfaces.ISender
-	if userAuth.PhoneNumber != "" {
-		sender = utils.PhoneNumber{PhoneNumber: userAuth.PhoneNumber}
-	} else if userAuth.EmailAddress != "" {
+	if userAuth.EmailAddress != "" {
 		sender = utils.EmailAddress{EmailAddress: userAuth.EmailAddress}
 	} else {
-		panic(errors.WithStack(errors.New("手机号和电子邮件不能同时为空")))
+		panic(errors.WithStack(errors.New("电子邮件不能为空")))
 	}
-
 	err = utils.CheckValidCode(sender, userAuth.ValidCode)
 	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	// 将类型和电子邮件拼接后存入redis
+	st := utils.ParseSendCode(userAuth.CheckFor)
+	_, err = utils.RedisSet(sender.String()+st.String()+"_checked", "OK", nil)
+	if err != nil {
+		_ = utils.RedisDelete(sender.String() + "_checked")
 		panic(errors.WithStack(err))
 	}
 	c.JSON(200, gin.H{"code": 1, "msg": "验证通过"})
@@ -133,9 +149,7 @@ func (e *UserController) Login(c *gin.Context) {
 	userService := services.UserFactory()
 	// 1、检查账号密码
 	var sender interfaces.ISender
-	if userAuth.PhoneNumber != "" {
-		sender = utils.PhoneNumber{PhoneNumber: userAuth.PhoneNumber}
-	} else if userAuth.EmailAddress != "" {
+	if userAuth.EmailAddress != "" {
 		sender = utils.EmailAddress{EmailAddress: userAuth.EmailAddress}
 	} else {
 		panic(errors.WithStack(errors.New("手机号和电子邮件不能同时为空")))
@@ -163,7 +177,6 @@ func (e *UserController) Login(c *gin.Context) {
  */
 func (e *UserController) LoginBySender(c *gin.Context) {
 	userAuth := struct {
-		PhoneNumber  string `json:"phone_number"`
 		EmailAddress string `json:"email_address"`
 		ValidCode    string `json:"valid_code"`
 	}{}
@@ -172,12 +185,10 @@ func (e *UserController) LoginBySender(c *gin.Context) {
 		panic(errors.WithStack(err))
 	}
 	var sender interfaces.ISender
-	if userAuth.PhoneNumber != "" {
-		sender = utils.PhoneNumber{PhoneNumber: userAuth.PhoneNumber}
-	} else if userAuth.EmailAddress != "" {
+	if userAuth.EmailAddress != "" {
 		sender = utils.EmailAddress{EmailAddress: userAuth.EmailAddress}
 	} else {
-		panic(errors.WithStack(errors.New("手机号和电子邮件不能同时为空")))
+		panic(errors.WithStack(errors.New("电子邮件不能为空")))
 	}
 	err = utils.CheckValidCode(sender, userAuth.ValidCode)
 	if err != nil {
@@ -199,8 +210,8 @@ func (e *UserController) LoginBySender(c *gin.Context) {
  */
 func (e *UserController) SenderCheckCode(c *gin.Context) {
 	userAuth := struct {
-		PhoneNumber  string `json:"phone_number"`
 		EmailAddress string `json:"email_address"`
+		SendFor      string `json:"send_for"`
 	}{}
 	err := c.Bind(&userAuth)
 	if err != nil {
@@ -208,24 +219,16 @@ func (e *UserController) SenderCheckCode(c *gin.Context) {
 	}
 	// 检查该手机号是否已经注册
 	userService := services.UserFactory()
-	var st string
+	st := utils.ParseSendCode(userAuth.SendFor)
 	var sender interfaces.ISender
-	if userAuth.PhoneNumber != "" {
-		_, err := userService.GetUserByPhoneNumber(userAuth.PhoneNumber)
-		if err != nil {
-			panic(errors.WithStack(err))
-		}
-		sender = utils.PhoneNumber{PhoneNumber: userAuth.PhoneNumber}
-		st = utils.PhoneRegister
-	} else if userAuth.EmailAddress != "" {
+	if userAuth.EmailAddress != "" {
 		_, err := userService.GetUserByEmailAddress(userAuth.EmailAddress)
 		if err != nil {
 			panic(errors.WithStack(err))
 		}
 		sender = utils.EmailAddress{EmailAddress: userAuth.EmailAddress}
-		st = utils.EmailRegisterCode
 	} else {
-		panic(errors.WithStack(errors.New("手机号和email不能同时为空")))
+		panic(errors.WithStack(errors.New("电子邮件不能为空")))
 	}
 	if err != nil {
 		panic(errors.WithStack(err))
@@ -238,7 +241,7 @@ func (e *UserController) SenderCheckCode(c *gin.Context) {
 		panic(errors.WithStack(err))
 	}
 	// 去请求短信服务
-	err = sender.SendMessage(st, "注册",
+	err = sender.SendMessage(st.String(), "注册",
 		utils.Options{
 			FieldName:  func() string { return "code" },
 			FieldValue: func() string { return validCode.ValidCode }})
@@ -336,11 +339,6 @@ func (e *UserController) UpdateAvatar(c *gin.Context) {
 		panic(errors.WithStack(err))
 	}
 	c.JSON(200, userResp)
-}
-
-// TODO: 重新绑定手机
-func (e *UserController) RebindPhoneNumber(c *gin.Context) {
-
 }
 
 // TODO: 重新绑定邮箱

@@ -39,14 +39,7 @@ func UserFactory() UserService {
  * @author: xiaozuhui
  */
 func (s UserService) CheckPassword(contact interfaces.ISender, password string) (bool, error) {
-	var user *entities.UserEntity
-	var err error
-	switch contact.Type() {
-	case utils.Phone:
-		user, err = s.UserRepo.FindUserByPhoneNumber(contact.String())
-	case utils.Email:
-		user, err = s.UserRepo.FindUserByEmail(contact.String())
-	}
+	user, err := s.UserRepo.FindUserByEmail(contact.String())
 	if err != nil {
 		return false, err
 	}
@@ -68,14 +61,7 @@ func (s UserService) CheckPassword(contact interfaces.ISender, password string) 
  * @author: xiaozuhui
  */
 func (s UserService) Login(contact interfaces.ISender) (*UserInfo, error) {
-	var userEntity *entities.UserEntity
-	var err error
-	switch contact.Type() {
-	case utils.Phone:
-		userEntity, err = s.UserRepo.FindUserByPhoneNumber(contact.String())
-	case utils.Email:
-		userEntity, err = s.UserRepo.FindUserByEmail(contact.String())
-	}
+	userEntity, err := s.UserRepo.FindUserByEmail(contact.String())
 	if err != nil {
 		return nil, err
 	}
@@ -100,28 +86,6 @@ func (s UserService) Login(contact interfaces.ISender) (*UserInfo, error) {
 		user, token_,
 	}
 	return userInfo, nil
-}
-
-// GetUserByPhoneNumber
-/**
- * @description: 通过手机号获取用户
- * @param {string} phoneNumber
- * @return {*User, error}
- * @author: xiaozuhui
- */
-func (s UserService) GetUserByPhoneNumber(phoneNumber string) (*resp.User, error) {
-	user, err := s.UserRepo.FindUserByPhoneNumber(phoneNumber)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	userResp, err := resp.MakeUser(*user)
-	if err != nil {
-		return nil, err
-	}
-	return userResp, nil
 }
 
 func (s UserService) GetUserByEmailAddress(emailAddress string) (*resp.User, error) {
