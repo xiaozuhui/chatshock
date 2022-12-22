@@ -19,7 +19,6 @@ import (
 type User struct {
 	UUID         uuid.UUID `json:"id"`
 	NickName     string    `json:"nickname"`
-	PhoneNumber  string    `json:"phone_number"`
 	Email        string    `json:"email"`
 	Gender       string    `json:"gender"`
 	Introduction string    `json:"introduction"`
@@ -38,7 +37,6 @@ func MakeUser(userEntity entities.UserEntity) (*User, error) {
 	user := User{
 		UUID:         userEntity.UUID,
 		NickName:     userEntity.NickName,
-		PhoneNumber:  userEntity.PhoneNumber,
 		Email:        userEntity.Email,
 		Gender:       string(userEntity.Gender),
 		LastLogin:    userEntity.LastLogin,

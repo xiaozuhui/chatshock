@@ -30,12 +30,7 @@ func TestAvatar(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			t.Error(err)
-		}
-	}(file)
+	defer file.Close()
 	_, err = file.Write(avatar.Bytes())
 	if err != nil {
 		t.Error(err)

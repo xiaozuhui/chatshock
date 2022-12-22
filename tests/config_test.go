@@ -26,5 +26,5 @@ func TestGetConfig(t *testing.T) {
 		t.Error(err.Error())
 	}
 	configs.Conf.Parse(viper.GetViper())
-	t.Log(configs.Conf.PhoneConfig)
+	//t.Log(configs.Conf.PhoneConfig)
 }

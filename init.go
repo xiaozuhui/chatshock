@@ -17,9 +17,6 @@ import (
 	"os"
 	"path/filepath"
 
-	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
-	smsapi "github.com/alibabacloud-go/dysmsapi-20170525/v3/client"
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/go-redis/redis/v8"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -123,28 +120,4 @@ func InitMinioClient() *minio.Client {
 	}
 	log.Info("minio客户端初始化完毕")
 	return configs.MinioClient
-}
-
-// InitSmsClient 初始化短信工具，并获取其SMSClient
-/**
- * @description:  初始化短信工具，并获取其SMSClient
- * @return {*}
- * @author: xiaozuhui
- */
-func InitSmsClient() *smsapi.Client {
-	var err error
-	accessKeyID := tea.String(configs.Conf.PhoneConfig.AppKey)
-	accessKeySecret := tea.String(configs.Conf.PhoneConfig.AppSecret)
-	host := configs.Conf.PhoneConfig.Host
-	_config := &openapi.Config{
-		AccessKeyId:     accessKeyID,
-		AccessKeySecret: accessKeySecret,
-	}
-	// 访问的域名
-	_config.Endpoint = tea.String(host)
-	configs.SMSClient, err = smsapi.NewClient(_config)
-	if err != nil {
-		log.Fatalf("%v", errors.WithStack(err))
-	}
-	return configs.SMSClient
 }

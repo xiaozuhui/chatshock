@@ -17,14 +17,13 @@ import (
 
 type UserModel struct {
 	BaseModel
-	NickName     string              `json:"nickname" gorm:"type:char(512)"`      // nickname 即昵称
-	Password     string              `json:"password" gorm:"type:char(512)"`      // 密码
-	PhoneNumber  string              `json:"phone_number" gorm:"type:char(11);"`  // 手机号码将作为唯一标识
-	Email        string              `json:"email" gorm:"type:char(512);"`        // 邮箱地址，也可作为唯一标识
-	Introduction string              `json:"introduction" gorm:"type:char(1024)"` // 自我介绍
-	Avatar       *FileModel          `json:"avatar" gorm:"-"`                     // 头像可能即存文件名称
-	LastLogin    time.Time           `json:"last_login"`                          // 最后一次登录
-	Gender       entities.GenderType `json:"gender" gorm:"type:integer"`          // 性别
+	NickName     string              `json:"nickname" gorm:"type:char(512);unique"` // nickname 即昵称
+	Password     string              `json:"password" gorm:"type:char(512)"`        // 密码
+	Email        string              `json:"email" gorm:"type:char(512);unique"`    // 邮箱地址，也可作为唯一标识
+	Introduction string              `json:"introduction" gorm:"type:char(1024)"`   // 自我介绍
+	Avatar       *FileModel          `json:"avatar" gorm:"-"`                       // 头像可能即存文件名称
+	LastLogin    time.Time           `json:"last_login"`                            // 最后一次登录
+	Gender       entities.GenderType `json:"gender" gorm:"type:integer"`            // 性别
 }
 
 func (m UserModel) ModelToEntity() interface{} {
@@ -32,7 +31,6 @@ func (m UserModel) ModelToEntity() interface{} {
 	baseEntity := m.BaseModel.ModelToEntity()
 	userEntity.BaseEntity = *baseEntity
 	userEntity.NickName = m.NickName
-	userEntity.PhoneNumber = m.PhoneNumber
 	userEntity.Email = m.Email
 	userEntity.LastLogin = m.LastLogin
 	userEntity.Avatar = m.Avatar.ModelToEntity().(*entities.FileEntity)
@@ -44,13 +42,12 @@ func (m UserModel) ModelToEntity() interface{} {
 
 func EntityToUserModel(e *entities.UserEntity) (*UserModel, error) {
 	m := &UserModel{}
-	if e.PhoneNumber == "" && e.Email == "" {
-		return nil, errors.New("手机号码和电子邮箱不能同时为空")
+	if e.Email == "" {
+		return nil, errors.New("电子邮箱不能为空")
 	}
 	m.BaseModel = *EntityToBaseModel(&e.BaseEntity)
 	m.NickName = e.NickName
 	m.Password = e.Password
-	m.PhoneNumber = e.PhoneNumber
 	m.Email = e.Email
 	m.LastLogin = e.LastLogin
 	m.Avatar = EntityToFileModel(e.Avatar)

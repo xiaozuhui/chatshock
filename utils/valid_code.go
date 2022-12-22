@@ -11,7 +11,6 @@ package utils
 import (
 	"chatshock/interfaces"
 	"fmt"
-	"log"
 	"math/rand"
 	"strings"
 	"time"
@@ -77,13 +76,12 @@ func (v *ValidCode) registerCode() string {
 func CheckValidCode(sender interfaces.ISender, vCode string) error {
 	validCode, err := RedisStrGet(fmt.Sprintf("%s_register", sender.String()))
 	if err != nil {
-		log.Println(errors.WithStack(err))
 		return err
 	}
 	if validCode == nil {
 		return errors.WithStack(errors.New("验证码不存在或已经过期，请再次请求验证码"))
 	}
-	if strings.EqualFold(strings.ToUpper(vCode), strings.ToUpper(*validCode)) {
+	if !strings.EqualFold(strings.ToUpper(vCode), strings.ToUpper(*validCode)) {
 		return errors.WithStack(errors.New("验证码错误"))
 	}
 	return nil

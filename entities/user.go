@@ -16,7 +16,6 @@ type UserEntity struct {
 	BaseEntity
 	NickName     string        `json:"nickname"`
 	Password     string        `json:"password"`
-	PhoneNumber  string        `json:"phone_number"`
 	Email        string        `json:"email"`
 	Avatar       *FileEntity   `json:"avatar"`
 	Introduction string        `json:"introduction"`

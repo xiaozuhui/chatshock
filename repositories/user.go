@@ -180,9 +180,9 @@ func (u UserRepo) UpdateAccount(userEntity entities.UserEntity) error {
 	if userEntity.Gender != "" {
 		userModel.Gender = userEntity.Gender.ParseGenderStr()
 	}
-	if userEntity.PhoneNumber != "" {
-		userModel.PhoneNumber = userEntity.PhoneNumber
-	}
+	//if userEntity.PhoneNumber != "" {
+	//	userModel.PhoneNumber = userEntity.PhoneNumber
+	//}
 	if userEntity.Email != "" {
 		userModel.Email = userEntity.Email
 	}
