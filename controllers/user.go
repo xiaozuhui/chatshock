@@ -11,12 +11,10 @@ package controllers
 import (
 	"chatshock/applications"
 	"chatshock/entities"
-	"chatshock/interfaces"
 	"chatshock/middlewares"
 	"chatshock/services"
+	"chatshock/services/resp"
 	"chatshock/utils"
-	"fmt"
-
 	"github.com/gofrs/uuid"
 
 	"github.com/pkg/errors"
@@ -51,27 +49,20 @@ func (e *UserController) Router(engine *gin.Engine) {
  */
 func (e *UserController) Register(c *gin.Context) {
 	userParam := struct {
-		NickName     string `json:"nickname"`
+		NickName     string `json:"nickname" binding:"required"`
 		Password     string `json:"password"`
-		EmailAddress string `json:"email_address"`
+		EmailAddress string `json:"email_address" binding:"required,email"`
+		ValidCode    string `json:"valid_code" binding:"required"`
 	}{}
-	err := c.Bind(&userParam)
+	err := c.ShouldBind(&userParam)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
+	sender := utils.EmailAddress{EmailAddress: userParam.EmailAddress}
 	// 验证
-	var sender interfaces.ISender
-	if userParam.EmailAddress != "" {
-		sender = utils.EmailAddress{EmailAddress: userParam.EmailAddress}
-	} else {
-		panic(errors.WithStack(errors.New("电子邮件不能为空")))
-	}
-	isCheck, err := utils.RedisStrGet(sender.String() + utils.EmailRegisterCode.String() + "_checked")
+	err = utils.CheckValidCode(sender, userParam.ValidCode)
 	if err != nil {
 		panic(errors.WithStack(err))
-	}
-	if isCheck == nil || *isCheck != "OK" {
-		panic(errors.WithStack(errors.New(fmt.Sprintf("手机号或是电子邮件 %s 验证错误", sender.String()))))
 	}
 	// 创建账号
 	userApplication := applications.NewUserApplication()
@@ -102,20 +93,15 @@ func (e *UserController) Register(c *gin.Context) {
  */
 func (e *UserController) CheckValidCode(c *gin.Context) {
 	userAuth := struct {
-		EmailAddress string `json:"email_address"`
-		ValidCode    string `json:"valid_code"`
-		CheckFor     string `json:"check_for"` // TODO 检查的类型
+		EmailAddress string `json:"email_address" binding:"required,email"`
+		ValidCode    string `json:"valid_code" binding:"required"`
+		CheckFor     string `json:"check_for" binding:"required"`
 	}{}
-	err := c.Bind(&userAuth)
+	err := c.ShouldBind(&userAuth)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
-	var sender interfaces.ISender
-	if userAuth.EmailAddress != "" {
-		sender = utils.EmailAddress{EmailAddress: userAuth.EmailAddress}
-	} else {
-		panic(errors.WithStack(errors.New("电子邮件不能为空")))
-	}
+	sender := utils.EmailAddress{EmailAddress: userAuth.EmailAddress}
 	err = utils.CheckValidCode(sender, userAuth.ValidCode)
 	if err != nil {
 		panic(errors.WithStack(err))
@@ -138,22 +124,16 @@ func (e *UserController) CheckValidCode(c *gin.Context) {
  */
 func (e *UserController) Login(c *gin.Context) {
 	userAuth := struct {
-		PhoneNumber  string `json:"phone_number"`
-		EmailAddress string `json:"email_address"`
-		Password     string `json:"password"`
+		EmailAddress string `json:"email_address" binding:"required,email"`
+		Password     string `json:"password" binding:"required"`
 	}{}
-	err := c.Bind(&userAuth)
+	err := c.ShouldBind(&userAuth)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
 	userService := services.UserFactory()
 	// 1、检查账号密码
-	var sender interfaces.ISender
-	if userAuth.EmailAddress != "" {
-		sender = utils.EmailAddress{EmailAddress: userAuth.EmailAddress}
-	} else {
-		panic(errors.WithStack(errors.New("手机号和电子邮件不能同时为空")))
-	}
+	sender := utils.EmailAddress{EmailAddress: userAuth.EmailAddress}
 	isCheck, err := userService.CheckPassword(sender, userAuth.Password)
 	if err != nil {
 		panic(errors.WithStack(err))
@@ -177,19 +157,14 @@ func (e *UserController) Login(c *gin.Context) {
  */
 func (e *UserController) LoginBySender(c *gin.Context) {
 	userAuth := struct {
-		EmailAddress string `json:"email_address"`
-		ValidCode    string `json:"valid_code"`
+		EmailAddress string `json:"email_address" binding:"required,email"`
+		ValidCode    string `json:"valid_code" binding:"required"`
 	}{}
-	err := c.Bind(&userAuth)
+	err := c.ShouldBind(&userAuth)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
-	var sender interfaces.ISender
-	if userAuth.EmailAddress != "" {
-		sender = utils.EmailAddress{EmailAddress: userAuth.EmailAddress}
-	} else {
-		panic(errors.WithStack(errors.New("电子邮件不能为空")))
-	}
+	sender := utils.EmailAddress{EmailAddress: userAuth.EmailAddress}
 	err = utils.CheckValidCode(sender, userAuth.ValidCode)
 	if err != nil {
 		panic(errors.WithStack(err))
@@ -210,29 +185,24 @@ func (e *UserController) LoginBySender(c *gin.Context) {
  */
 func (e *UserController) SenderCheckCode(c *gin.Context) {
 	userAuth := struct {
-		EmailAddress string `json:"email_address"`
-		SendFor      string `json:"send_for"`
+		EmailAddress string `json:"email_address" binding:"required,email"`
+		SendFor      string `json:"send_for" binding:"required"`
 	}{}
-	err := c.Bind(&userAuth)
+	err := c.ShouldBind(&userAuth)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
 	// 检查该手机号是否已经注册
 	userService := services.UserFactory()
 	st := utils.ParseSendCode(userAuth.SendFor)
-	var sender interfaces.ISender
-	if userAuth.EmailAddress != "" {
-		_, err := userService.GetUserByEmailAddress(userAuth.EmailAddress)
-		if err != nil {
-			panic(errors.WithStack(err))
-		}
-		sender = utils.EmailAddress{EmailAddress: userAuth.EmailAddress}
-	} else {
-		panic(errors.WithStack(errors.New("电子邮件不能为空")))
-	}
+	userResp, err := userService.GetUserByEmailAddress(userAuth.EmailAddress)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
+	if userResp != nil {
+		panic(errors.WithStack(errors.New("电子邮件已经存在")))
+	}
+	sender := utils.EmailAddress{EmailAddress: userAuth.EmailAddress}
 	// 生成验证码
 	validCode := utils.GenerateValidCode(utils.RegisterOrLogin)
 	// 存入redis
@@ -341,12 +311,67 @@ func (e *UserController) UpdateAvatar(c *gin.Context) {
 	c.JSON(200, userResp)
 }
 
-// TODO: 重新绑定邮箱
+// RebindEmail 重新绑定邮箱
 func (e *UserController) RebindEmail(c *gin.Context) {
-
+	userParam := struct {
+		OldEmailAddress string `json:"old_email_address" binding:"required,email"`
+		NewEmailAddress string `json:"new_email_address" binding:"required,email"`
+		ValidCode       string `json:"valid_code" binding:"required"`
+	}{}
+	err := c.ShouldBind(&userParam)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	// 检查验证
+	sender := utils.EmailAddress{EmailAddress: userParam.OldEmailAddress}
+	err = utils.CheckValidCode(sender, userParam.ValidCode)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	userService := services.UserFactory()
+	userEntity, err := userService.UserRepo.FindUserByEmail(userParam.OldEmailAddress)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	userEntity.Email = userParam.NewEmailAddress
+	err = userService.UpdateAccount(userEntity)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	userResp, err := resp.MakeUser(*userEntity)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	c.JSON(200, userResp)
 }
 
-// TODO: 重置密码
+// ResetPassword 重置密码
 func (e *UserController) ResetPassword(c *gin.Context) {
-
+	userParam := struct {
+		EmailAddress string `json:"email_address" binding:"required,email"`
+		Password     string `json:"password" binding:"required"`
+		ValidCode    string `json:"valid_code" binding:"required"`
+	}{}
+	err := c.ShouldBind(&userParam)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	// 检查验证
+	sender := utils.EmailAddress{EmailAddress: userParam.EmailAddress}
+	err = utils.CheckValidCode(sender, userParam.ValidCode)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	// 更新
+	userService := services.UserFactory()
+	userEntity, err := userService.UserRepo.FindUserByEmail(sender.String())
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	userEntity.Password = userParam.Password
+	err = userService.UpdateAccount(userEntity)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	c.JSON(200, gin.H{})
 }
