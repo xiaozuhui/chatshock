@@ -20,7 +20,6 @@ func InitModel() error {
 	migrates = append(migrates,
 		FileModel{},
 		UserModel{},
-		FriendsModel{},
 		FriendsModel{})
 	err := configs.DBEngine.AutoMigrate(migrates...)
 	if err != nil {

@@ -26,11 +26,17 @@ type UserRepo struct {
 
 func (u UserRepo) FindUserByEmail(email string) (*entities.UserEntity, error) {
 	var user models.UserModel
+	var avatar models.FileModel
 	err := configs.DBEngine.First(&user, "email = ?", email).Error
 	if err != nil {
 		return nil, err
 	}
 	ent := user.ModelToEntity().(*entities.UserEntity)
+	err = configs.DBEngine.First(&avatar, "uuid = ?", user.Avatar).Error
+	if err != nil {
+		return nil, err
+	}
+	ent.Avatar = avatar.ModelToEntity().(*entities.FileEntity)
 	return ent, nil
 }
 
@@ -43,16 +49,24 @@ func (u UserRepo) FindUserByEmail(email string) (*entities.UserEntity, error) {
  */
 func (u UserRepo) FindUser(ID uuid.UUID) (*entities.UserEntity, error) {
 	var user models.UserModel
+	var avatar models.FileModel
 	err := configs.DBEngine.First(&user, "uuid = ?", ID).Error
 	if err != nil {
 		return nil, err
 	}
 	ent := user.ModelToEntity().(*entities.UserEntity)
+	err = configs.DBEngine.First(&avatar, "uuid = ?", user.Avatar).Error
+	if err != nil {
+		return nil, err
+	}
+	ent.Avatar = avatar.ModelToEntity().(*entities.FileEntity)
 	return ent, nil
 }
 
 func (u UserRepo) FindUsers(IDs []uuid.UUID) ([]*entities.UserEntity, error) {
 	var users []models.UserModel
+	var avatars []models.FileModel
+
 	iUsers := make([]custom.IModel, 0)
 	res := make([]*entities.UserEntity, 0)
 
@@ -60,31 +74,28 @@ func (u UserRepo) FindUsers(IDs []uuid.UUID) ([]*entities.UserEntity, error) {
 	if err != nil {
 		return nil, err
 	}
+	avatarUUIDs := make([]uuid.UUID, 0, 0)
+	userDict := make(map[uuid.UUID]uuid.UUID, 0)          // UserUUID - AvatarUUID
+	avatarDict := make(map[uuid.UUID]models.FileModel, 0) // AvatarUUID - Avatar
 	for _, friend := range users {
 		iUsers = append(iUsers, friend)
+		avatarUUIDs = append(avatarUUIDs, friend.Avatar)
+		userDict[friend.UUID] = friend.Avatar
 	}
-	us := custom.DBs(iUsers)
-	for _, f := range us {
-		res = append(res, f.(*entities.UserEntity))
-	}
-	return res, nil
-}
-
-// FindUserByPhoneNumber
-/**
- * @description:  通过电话号码获取用户信息
- * @param {string} phoneNumber
- * @return {*}
- * @author: xiaozuhui
- */
-func (u UserRepo) FindUserByPhoneNumber(phoneNumber string) (*entities.UserEntity, error) {
-	var user models.UserModel
-	err := configs.DBEngine.First(&user, "phone_number = ?", phoneNumber).Error
+	err = configs.DBEngine.Where("uuid IN (?)", avatarUUIDs).Find(&avatars).Error
 	if err != nil {
 		return nil, err
 	}
-	ent := user.ModelToEntity().(*entities.UserEntity)
-	return ent, nil
+	for _, avatar := range avatars {
+		avatarDict[avatar.UUID] = avatar
+	}
+	us := custom.DBs(iUsers)
+	for _, u := range us {
+		ue := u.(*entities.UserEntity)
+		ue.Avatar = avatarDict[userDict[ue.UUID]].ModelToEntity().(*entities.FileEntity)
+		res = append(res, ue)
+	}
+	return res, nil
 }
 
 // DeleteUser
@@ -180,9 +191,6 @@ func (u UserRepo) UpdateAccount(userEntity entities.UserEntity) error {
 	if userEntity.Gender != "" {
 		userModel.Gender = userEntity.Gender.ParseGenderStr()
 	}
-	//if userEntity.PhoneNumber != "" {
-	//	userModel.PhoneNumber = userEntity.PhoneNumber
-	//}
 	if userEntity.Email != "" {
 		userModel.Email = userEntity.Email
 	}
@@ -194,7 +202,7 @@ func (u UserRepo) UpdateAccount(userEntity entities.UserEntity) error {
 		userModel.Password = pass
 	}
 	if userEntity.Avatar != nil {
-		userModel.Avatar = models.EntityToFileModel(userEntity.Avatar)
+		userModel.Avatar = userEntity.Avatar.UUID
 	}
 	err = configs.DBEngine.Model(&userModel).Save(&userModel).Error
 	if err != nil {

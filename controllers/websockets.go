@@ -1,9 +1,7 @@
 package controllers
 
 import (
-	"chatshock/middlewares"
 	"chatshock/services"
-	"chatshock/utils"
 	"chatshock/websockets"
 	"context"
 	log "github.com/sirupsen/logrus"
@@ -27,21 +25,19 @@ type WebSocketController struct {
 }
 
 func (e *WebSocketController) Router(engine *gin.Engine) {
-	cr := engine.Group("/ws")
-	cr.Use(middlewares.JWTAuth())
-	cr.GET("", e.LinkWebsocket)
+	engine.GET("/ws", e.LinkWebsocket)
 }
 
 // LinkWebsocket 连接websocket
 func (e *WebSocketController) LinkWebsocket(c *gin.Context) {
 	userService := services.UserFactory()
-	var UserID uuid.UUID
-	if claims, ok := c.Get("claims"); ok {
-		UserID = claims.(utils.UserClaims).UUID
-	} else {
-		panic(errors.WithStack(errors.New("用户不存在")))
+	log.Info("链接中...")
+	userID := c.DefaultQuery("user_id", "")
+	userUUID, err := uuid.FromString(userID)
+	if err != nil {
+		panic(errors.WithStack(err))
 	}
-	userEntity, err := userService.UserRepo.FindUser(UserID)
+	userEntity, err := userService.UserRepo.FindUser(userUUID)
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
@@ -49,7 +45,7 @@ func (e *WebSocketController) LinkWebsocket(c *gin.Context) {
 	conn, err := websocket.Accept(c.Writer, c.Request,
 		&websocket.AcceptOptions{InsecureSkipVerify: true})
 	if err != nil {
-		log.Fatal(errors.WithStack(err))
+		panic(errors.WithStack(err))
 	}
 	defer func(conn *websocket.Conn, code websocket.StatusCode, reason string) {
 		err := conn.Close(code, reason)
@@ -61,7 +57,7 @@ func (e *WebSocketController) LinkWebsocket(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c, time.Second*10)
 	defer cancel()
 	// 保存链接
-	chatUser := websockets.NewUser(UserID, userEntity, conn)
+	chatUser := websockets.NewUser(userUUID, userEntity, conn)
 	// 开启给用户发消息的goroutine
 	go chatUser.SendMessage(ctx)
 	// 阻塞获取ws数据

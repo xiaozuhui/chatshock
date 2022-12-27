@@ -65,6 +65,7 @@ func (u *User) ReceiveMessage(ctx context.Context) error {
 			}
 			return err
 		}
+		// TODO 验证消息
 		sendMsg, err := NewMessage(u, receiveMsg)
 		if err != nil {
 			return err
