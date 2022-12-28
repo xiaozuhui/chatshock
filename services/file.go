@@ -47,7 +47,7 @@ func (s FileService) GetFile(id uuid.UUID) (*entities.FileEntity, error) {
 	return file, nil
 }
 
-func (s FileService) GetFiles(ids []uuid.UUID) ([]*entities.FileEntity, error) {
+func (s FileService) GetFiles(ids ...uuid.UUID) ([]*entities.FileEntity, error) {
 	files, err := s.FileRepo.GetFiles(ids)
 	if err != nil {
 		return nil, err

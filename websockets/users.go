@@ -53,7 +53,7 @@ func (u *User) SendMessage(ctx context.Context) {
 // ReceiveMessage 从前端获取websocket数据
 func (u *User) ReceiveMessage(ctx context.Context) error {
 	var (
-		receiveMsg map[string]interface{}
+		receiveMsg map[string]any
 		err        error
 	)
 	for {
@@ -63,14 +63,17 @@ func (u *User) ReceiveMessage(ctx context.Context) error {
 			if errors.As(err, &closeErr) {
 				return nil
 			}
+			log.Error(errors.WithStack(err))
+			u.MessageChannel <- ErrorMessage(u, err)
 			return err
 		}
-		// TODO 验证消息
 		sendMsg, err := NewMessage(u, receiveMsg)
 		if err != nil {
-			return err
+			log.Error(errors.WithStack(err))
+			u.MessageChannel <- ErrorMessage(u, err)
+			continue
 		}
-		// 判断类型，发送到私信还是发送到聊天室，通过broadcast发送
+		// TODO 判断类型，发送到私信还是发送到聊天室，通过broadcast发送
 		fmt.Println(sendMsg)
 	}
 }

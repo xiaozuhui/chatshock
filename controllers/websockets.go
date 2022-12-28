@@ -54,7 +54,7 @@ func (e *WebSocketController) LinkWebsocket(c *gin.Context) {
 		}
 	}(conn, websocket.StatusInternalError, "")
 	// 获取超时十秒的子context，后续收发操作都使用该子context
-	ctx, cancel := context.WithTimeout(c, time.Second*10)
+	ctx, cancel := context.WithTimeout(c, time.Second*60*60)
 	defer cancel()
 	// 保存链接
 	chatUser := websockets.NewUser(userUUID, userEntity, conn)

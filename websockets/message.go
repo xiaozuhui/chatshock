@@ -13,6 +13,8 @@ import (
 	"chatshock/services"
 	"fmt"
 	"github.com/gofrs/uuid"
+	log "github.com/sirupsen/logrus"
+	"reflect"
 	"time"
 
 	"github.com/pkg/errors"
@@ -129,13 +131,52 @@ func NewMessage(user *User, params map[string]interface{}) (*Message, error) {
 	type: int MsgTypeNormal|MsgTypeChatRoom
 	msg_type: string
 	*/
-	// TODO 创建要发送数据
-	var content = params["msg_content"].(string)  // 消息内容，可以为空
-	var to = params["to"].([]uuid.UUID)           // 被指定的用户的uuid
-	var mType = params["type"].(int)              // 消息传递类型
-	var msgType = params["msg_type"].(string)     // 消息类型
-	var filesUUID = params["files"].([]uuid.UUID) // 文件模型的uuid
-	var msgTime = params["msg_time"].(time.Time)  // 消息时间
+	log.Info(fmt.Sprintf("参数为：%v", params))
+	var (
+		value any
+		err   error
+	)
+	// 消息内容，可以为空
+	value, err = CheckMap(params, "msg_content", "string")
+	if err != nil {
+		return nil, err
+	}
+	var msgContent = value.(string)
+	// 被指定的用户的uuid
+	value, err = CheckMap(params, "to", "[]uuid.UUID")
+	if err != nil {
+		return nil, err
+	}
+	var to = params["to"].([]uuid.UUID)
+	// 消息传递类型
+	value, err = CheckMap(params, "type", "int")
+	if err != nil {
+		return nil, err
+	}
+	var mType = params["type"].(int)
+	// 消息类型
+	value, err = CheckMap(params, "msg_type", "string")
+	if err != nil {
+		return nil, err
+	}
+	var msgType = params["msg_type"].(string)
+	// 文件的uuid
+	value, err = CheckMap(params, "files", "[]uuid.UUID", true)
+	if err != nil {
+		return nil, err
+	}
+	var fileUUIDs []uuid.UUID
+	if value == nil {
+		fileUUIDs = []uuid.UUID{uuid.Nil}
+	} else {
+		fileUUIDs = params["files"].([]uuid.UUID)
+	}
+	// 消息时间
+	value, err = CheckMap(params, "msg_time", "time.Time")
+	if err != nil {
+		return nil, err
+	}
+	var msgTime = params["msg_time"].(time.Time)
 	// 判断to中的人是否在broadcast中，因为所有能够发送数据的人，都应该在broadcast里
 	toUsers := make(map[uuid.UUID]string, 0)
 	for _, toID := range to {
@@ -145,7 +186,7 @@ func NewMessage(user *User, params map[string]interface{}) (*Message, error) {
 	}
 	// 获取到file的实体
 	fileService := services.FileFactory()
-	files, err := fileService.GetFiles(filesUUID)
+	files, err := fileService.GetFiles(fileUUIDs...)
 	if err != nil {
 		return nil, err
 	}
@@ -156,9 +197,50 @@ func NewMessage(user *User, params map[string]interface{}) (*Message, error) {
 		MType:      MType(mType),
 		MsgType:    MessageTypeStr(msgType).Parse(),
 		To:         toUsers,
-		MsgContent: content,
+		MsgContent: msgContent,
 		Files:      files,
 		MsgTime:    msgTime,
 	}
 	return message, nil
+}
+
+func CheckMap(params map[string]any, checkKey, checkType string, noExcept ...bool) (any, error) {
+	var (
+		err   error
+		ok    bool
+		value any
+	)
+
+	if value, ok = params[checkKey]; ok {
+		valueType := reflect.TypeOf(value).Kind().String()
+		if valueType == checkType {
+			err = nil
+		}
+		err = errors.WithStack(errors.New(fmt.Sprintf("params中[%s]数据[%v]的类型错误，不是%s，而是%s", checkKey, value, checkType, valueType)))
+		value = nil
+	} else {
+		value = nil
+		err = errors.WithStack(errors.New(fmt.Sprintf("key=[%s]的数据不存在", checkKey)))
+	}
+	if err != nil {
+		if len(noExcept) == 0 || !noExcept[0] {
+			return nil, err
+		}
+		return nil, nil
+	}
+	return value, nil
+}
+
+func ErrorMessage(user *User, err error) *Message {
+	message := &Message{
+		FromID:     user.UserEntity.UUID,
+		FromName:   user.UserEntity.NickName,
+		MType:      MsgTypeError,
+		MsgType:    MtText,
+		To:         map[uuid.UUID]string{user.UserEntity.UUID: user.UserEntity.NickName},
+		MsgContent: errors.WithStack(err).Error(),
+		Files:      nil,
+		MsgTime:    time.Now(),
+	}
+	return message
 }

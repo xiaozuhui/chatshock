@@ -17,10 +17,11 @@ import (
 
 type ChatroomModel struct {
 	BaseModel
-	Name        string                   `json:"name" gorm:"type:char(512)"`
-	Description string                   `json:"description" gorm:"type:char(512)"`
-	Users       map[uuid.UUID]*UserModel `json:"users" gorm:"-"`
-	Master      *UserModel               `json:"master" gorm:"-"`
+	Name           string      `json:"name" gorm:"type:char(512);unique"` // 群名称
+	Description    string      `json:"description" gorm:"type:char(512)"` // 备注/介绍
+	Users          []uuid.UUID `json:"users"`                             // 群中用户
+	Master         uuid.UUID   `json:"master" gorm:"type:char(36)"`       // 群主
+	ChatRoomAvatar uuid.UUID   `json:"chatRoomAvatar"`                    // 聊天室头像
 }
 
 func (m ChatroomModel) ModelToEntity() interface{} {
@@ -29,10 +30,6 @@ func (m ChatroomModel) ModelToEntity() interface{} {
 	chatRoom.BaseEntity = *baseEntity
 	chatRoom.Name = m.Name
 	chatRoom.Description = m.Description
-	chatRoom.Master = m.Master.ModelToEntity().(*entities.UserEntity)
-	for userID, chatroom := range m.Users {
-		chatRoom.Users[userID] = (*chatroom).ModelToEntity().(*entities.UserEntity)
-	}
 	return chatRoom
 }
 
@@ -41,10 +38,11 @@ func EntityToChatroomModel(e *entities.ChatRoom) (*ChatroomModel, error) {
 	m.BaseModel = *EntityToBaseModel(&e.BaseEntity)
 	m.Name = e.Name
 	m.Description = e.Description
-	m.Master, _ = EntityToUserModel(e.Master)
+	m.Master = e.Master.UUID
 	for _, u := range e.Users {
-		m.Users[u.UUID], _ = EntityToUserModel(u)
+		m.Users = append(m.Users, u.UUID)
 	}
+	m.ChatRoomAvatar = e.ChatRoomAvatar.UUID
 	return m, nil
 }
 

@@ -70,7 +70,7 @@ func (u UserRepo) FindUsers(IDs []uuid.UUID) ([]*entities.UserEntity, error) {
 	iUsers := make([]custom.IModel, 0)
 	res := make([]*entities.UserEntity, 0)
 
-	err := configs.DBEngine.Where("id IN (?)", IDs).Find(&users).Error
+	err := configs.DBEngine.Where("uuid IN (?)", IDs).Find(&users).Error
 	if err != nil {
 		return nil, err
 	}
