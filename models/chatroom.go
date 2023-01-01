@@ -18,11 +18,11 @@ import (
 
 type ChatroomModel struct {
 	BaseModel
-	Name           string         `json:"name" gorm:"type:char(512);unique"`   // 群名称
-	Description    string         `json:"description" gorm:"type:char(512)"`   // 备注/介绍
-	Users          datatypes.JSON `json:"users" gorm:"type:json;default:'{}'"` // 群中用户
-	Master         uuid.UUID      `json:"master" gorm:"type:char(36)"`         // 群主
-	ChatRoomAvatar uuid.UUID      `json:"chatRoomAvatar" gorm:"type:char(36)"` // 聊天室头像
+	Name           string         `json:"name" gorm:"type:varchar(512);unique"` // 群名称
+	Description    string         `json:"description" gorm:"type:varchar(512)"` // 备注/介绍
+	Users          datatypes.JSON `json:"users" gorm:"type:json;default:'{}'"`  // 群中用户
+	Master         uuid.UUID      `json:"master" gorm:"type:char(36)"`          // 群主
+	ChatRoomAvatar uuid.UUID      `json:"chatRoomAvatar" gorm:"type:char(36)"`  // 聊天室头像
 }
 
 func (m ChatroomModel) ModelToEntity() interface{} {

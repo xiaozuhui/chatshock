@@ -15,6 +15,56 @@ import (
 type ChatRoomRepo struct {
 }
 
+func (c ChatRoomRepo) FindAllChatRoom() ([]*entities.ChatRoom, error) {
+	var chatRooms []models.ChatroomModel
+	var users []models.UserModel
+	var avatars []models.FileModel
+
+	err := configs.DBEngine.Find(&chatRooms).Error
+	if err != nil {
+		return nil, err
+	}
+
+	userIDs := make([]uuid.UUID, 0, 0)
+	avatarIDs := make([]uuid.UUID, 0, 0)
+	userMap := make(map[uuid.UUID]*entities.UserEntity)
+	avatarMap := make(map[uuid.UUID]models.FileModel)
+	for _, chatRoom := range chatRooms {
+		userIDMap := make(map[uuid.UUID]struct{}, 0)
+		err := json.Unmarshal(chatRoom.Users, &userIDMap)
+		if err != nil {
+			return nil, err
+		}
+		for uID := range userIDMap {
+			userIDs = append(userIDs, uID)
+		}
+		avatarIDs = append(avatarIDs, chatRoom.ChatRoomAvatar)
+	}
+	err = configs.DBEngine.Where("uuid IN (?)", userIDs).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, user := range users {
+		userMap[user.UUID] = user.ModelToEntity().(*entities.UserEntity)
+	}
+	err = configs.DBEngine.Where("uuid IN (?)", avatarIDs).Find(&avatars).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, avatar := range avatars {
+		avatarMap[avatar.UUID] = avatar
+	}
+	res := make([]*entities.ChatRoom, 0, 0)
+	for _, chatRoom := range chatRooms {
+		chatRoomEntity := chatRoom.ModelToEntity().(*entities.ChatRoom)
+		chatRoomEntity.ChatRoomAvatar = avatarMap[chatRoom.UUID].ModelToEntity().(*entities.FileEntity)
+		chatRoomEntity.Users = userMap
+		chatRoomEntity.Master = userMap[chatRoom.Master]
+		res = append(res, chatRoomEntity)
+	}
+	return res, nil
+}
+
 func (c ChatRoomRepo) FindChatRooms(IDs []uuid.UUID) ([]*entities.ChatRoom, error) {
 	var chatRooms []models.ChatroomModel
 	var users []models.UserModel

@@ -11,6 +11,7 @@ package main
 import (
 	"chatshock/configs"
 	"chatshock/middlewares"
+	"chatshock/websockets"
 	"flag"
 	"os"
 
@@ -41,8 +42,13 @@ func main() {
 	InitRedis()
 	InitMinioClient()
 	InitRouters(r)
+
+	err := websockets.BroadCaster.ReLinkChatRooms()
+	if err != nil {
+		log.Fatal(errors.WithStack(err))
+	}
 	runHost := configs.Conf.AppConfig.AppHost + ":" + configs.Conf.AppConfig.AppPort
-	err := r.Run(runHost)
+	err = r.Run(runHost)
 	if err != nil {
 		log.Fatal(errors.WithStack(err))
 	}

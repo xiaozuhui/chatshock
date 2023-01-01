@@ -77,7 +77,7 @@ func CheckPassword(UUID uuid.UUID, password1, password2 string) (bool, error) {
 		return false, err
 	}
 	pass := base64.StdEncoding.EncodeToString(dk)
-	if pass != password2 {
+	if !strings.EqualFold(pass, password2) {
 		return false, errors.New("密码验证不正确")
 	}
 	return true, nil

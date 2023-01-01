@@ -24,4 +24,6 @@ type IChatRoom interface {
 	IntoChatRoom(userID, chatroomID uuid.UUID) error
 	// OutFromChatRoom 从某个聊天室离开
 	OutFromChatRoom(userID, chatroomID uuid.UUID) error
+	// FindAllChatRoom 获取所有的聊天室
+	FindAllChatRoom() ([]*entities.ChatRoom, error)
 }

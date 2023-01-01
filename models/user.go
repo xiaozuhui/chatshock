@@ -18,13 +18,13 @@ import (
 
 type UserModel struct {
 	BaseModel
-	NickName     string              `json:"nickname" gorm:"type:char(512);unique"` // nickname 即昵称
-	Password     string              `json:"password" gorm:"type:char(512)"`        // 密码
-	Email        string              `json:"email" gorm:"type:char(512);unique"`    // 邮箱地址，也可作为唯一标识
-	Introduction string              `json:"introduction" gorm:"type:char(1024)"`   // 自我介绍
-	Avatar       uuid.UUID           `json:"avatar" gorm:"type:char(36)"`           // 头像可能即存文件名称
-	LastLogin    time.Time           `json:"last_login"`                            // 最后一次登录
-	Gender       entities.GenderType `json:"gender" gorm:"type:integer"`            // 性别
+	NickName     string              `json:"nickname" gorm:"type:varchar(512);unique"` // nickname 即昵称
+	Password     string              `json:"password" gorm:"type:varchar(512)"`        // 密码
+	Email        string              `json:"email" gorm:"type:varchar(512);unique"`    // 邮箱地址，也可作为唯一标识
+	Introduction string              `json:"introduction" gorm:"type:varchar(1024)"`   // 自我介绍
+	Avatar       uuid.UUID           `json:"avatar" gorm:"type:varchar(36)"`           // 头像可能即存文件名称
+	LastLogin    time.Time           `json:"last_login"`                               // 最后一次登录
+	Gender       entities.GenderType `json:"gender" gorm:"type:integer"`               // 性别
 }
 
 func (m UserModel) ModelToEntity() interface{} {

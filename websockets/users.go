@@ -3,7 +3,6 @@ package websockets
 import (
 	"chatshock/entities"
 	"context"
-	"fmt"
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -74,6 +73,17 @@ func (u *User) ReceiveMessage(ctx context.Context) error {
 			continue
 		}
 		// TODO 判断类型，发送到私信还是发送到聊天室，通过broadcast发送
-		fmt.Println(sendMsg)
+		switch sendMsg.MType {
+		case MsgTypeNormal:
+			// 私信
+			for uID := range sendMsg.To {
+				if bU, ok := BroadCaster.Users[uID]; ok {
+					bU.MessageChannel <- sendMsg
+				}
+			}
+		case MsgTypeChatRoom:
+			// TODO 聊天室消息
+			continue
+		}
 	}
 }

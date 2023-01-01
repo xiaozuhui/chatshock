@@ -29,6 +29,7 @@ type Message struct {
 	Files      []*entities.FileEntity `json:"files"`       // 文件数组
 	MsgTime    time.Time              `json:"msg_time"`    // 消息创建的时间
 	To         map[uuid.UUID]string   `json:"to"`          // 发送给(提及)哪些用户(如果是@，可以@多个)
+	ToChatRoom map[uuid.UUID]string   `json:"to_chatroom"` // 发送到哪个聊天室
 }
 
 // MessageType 消息类型
@@ -41,15 +42,16 @@ type MType uint8
 type MessageTypeStr string
 
 const (
-	MtText            MessageType    = iota // 1、文字消息
-	MtPhoto                                 // 2、图片消息
-	MtDynamicPhoto                          // 3、动图消息（表情）
-	MtVideo                                 // 4、视频消息
-	MtVoice                                 // 5、语音消息
-	MtFile                                  // 6、文件消息
-	MtCard                                  // 7、复合消息（文字消息和图片组合在一起的消息类型）,卡片消息
-	MtURL                                   // 8、连接消息（安全连接，包括名片也属于连接）
-	MtVisitingCard                          // 9、封装了一层的连接消息
+	MtText         MessageType = iota // 1、文字消息
+	MtPhoto                           // 2、图片消息
+	MtDynamicPhoto                    // 3、动图消息（表情）
+	MtVideo                           // 4、视频消息
+	MtVoice                           // 5、语音消息
+	MtFile                            // 6、文件消息
+	MtCard                            // 7、复合消息（文字消息和图片组合在一起的消息类型）,卡片消息
+	MtURL                             // 8、连接消息（安全连接，包括名片也属于连接）
+	MtVisitingCard                    // 9、封装了一层的连接消息
+
 	MtTextStr         MessageTypeStr = "text"
 	MtPhotoStr        MessageTypeStr = "photo"
 	MtDynamicPhotoStr MessageTypeStr = "dynamic_photo"
@@ -59,10 +61,12 @@ const (
 	MtCardStr         MessageTypeStr = "text_and_photo"
 	MtURLStr          MessageTypeStr = "url"
 	MtVisitingCardStr MessageTypeStr = "visiting_card"
-	MsgTypeNormal     MType          = iota // 正常消息，私信
-	MsgTypeChatRoom                         // 聊天室消息，broadcast广播
-	MsgTypeSystem                           // 系统消息，正常消息，可以是通知
-	MsgTypeError                            // 系统消息，错误消息
+)
+const (
+	MsgTypeNormal   MType = iota // 正常消息，私信
+	MsgTypeChatRoom              // 聊天室消息，broadcast广播
+	MsgTypeSystem                // 系统消息，正常消息，可以是通知
+	MsgTypeError                 // 系统消息，错误消息
 	MsgTypeUserList
 )
 
@@ -131,56 +135,59 @@ func NewMessage(user *User, params map[string]interface{}) (*Message, error) {
 	type: int MsgTypeNormal|MsgTypeChatRoom
 	msg_type: string
 	*/
+	// TODO 这部分需要优化，需要更加简明
+	// TODO to_chatroom需要增加一下
 	log.Info(fmt.Sprintf("参数为：%v", params))
 	var (
-		value any
-		err   error
+		//value any
+		err error
 	)
 	// 消息内容，可以为空
-	value, err = CheckMap(params, "msg_content", "string")
-	if err != nil {
-		return nil, err
-	}
-	var msgContent = value.(string)
+	//value, err = CheckMap(params, "msg_content", "string")
+	//if err != nil {
+	//	return nil, err
+	//}
+	var msgContent = params["msg_content"].(string)
 	// 被指定的用户的uuid
-	value, err = CheckMap(params, "to", "[]uuid.UUID")
-	if err != nil {
-		return nil, err
-	}
-	var to = params["to"].([]uuid.UUID)
+	//value, err = CheckMap(params, "to", "[]uuid.UUID")
+	//if err != nil {
+	//	return nil, err
+	//}
+	var to = params["to"].([]interface{})
 	// 消息传递类型
-	value, err = CheckMap(params, "type", "int")
-	if err != nil {
-		return nil, err
-	}
-	var mType = params["type"].(int)
+	//value, err = CheckMap(params, "type", "int")
+	//if err != nil {
+	//	return nil, err
+	//}
+	var mType = int(params["type"].(float64))
 	// 消息类型
-	value, err = CheckMap(params, "msg_type", "string")
-	if err != nil {
-		return nil, err
-	}
+	//value, err = CheckMap(params, "msg_type", "string")
+	//if err != nil {
+	//	return nil, err
+	//}
 	var msgType = params["msg_type"].(string)
 	// 文件的uuid
-	value, err = CheckMap(params, "files", "[]uuid.UUID", true)
-	if err != nil {
-		return nil, err
-	}
+	//value, err = CheckMap(params, "files", "[]uuid.UUID", true)
+	//if err != nil {
+	//	return nil, err
+	//}
 	var fileUUIDs []uuid.UUID
-	if value == nil {
-		fileUUIDs = []uuid.UUID{uuid.Nil}
-	} else {
-		fileUUIDs = params["files"].([]uuid.UUID)
-	}
+	//if value == nil {
+	//	fileUUIDs = []uuid.UUID{uuid.Nil}
+	//} else {
+	//	fileUUIDs = params["files"].([]uuid.UUID)
+	//}
 	// 消息时间
-	value, err = CheckMap(params, "msg_time", "time.Time")
-	if err != nil {
-		return nil, err
-	}
-	var msgTime = params["msg_time"].(time.Time)
+	//value, err = CheckMap(params, "msg_time", "time.Time")
+	//if err != nil {
+	//	return nil, err
+	//}
+	var msgTime, _ = time.Parse(params["msg_time"].(string), "2006-01-02 15:04:05")
 	// 判断to中的人是否在broadcast中，因为所有能够发送数据的人，都应该在broadcast里
 	toUsers := make(map[uuid.UUID]string, 0)
 	for _, toID := range to {
-		if u, ok := BroadCaster.Users[toID]; ok {
+		id, _ := uuid.FromString(toID.(string))
+		if u, ok := BroadCaster.Users[id]; ok {
 			toUsers[u.UserEntity.UUID] = u.UserEntity.NickName
 		}
 	}
@@ -215,9 +222,10 @@ func CheckMap(params map[string]any, checkKey, checkType string, noExcept ...boo
 		valueType := reflect.TypeOf(value).Kind().String()
 		if valueType == checkType {
 			err = nil
+		} else {
+			err = errors.WithStack(errors.New(fmt.Sprintf("params中[%s]数据[%v]的类型错误，不是%s，而是%s", checkKey, value, checkType, valueType)))
+			value = nil
 		}
-		err = errors.WithStack(errors.New(fmt.Sprintf("params中[%s]数据[%v]的类型错误，不是%s，而是%s", checkKey, value, checkType, valueType)))
-		value = nil
 	} else {
 		value = nil
 		err = errors.WithStack(errors.New(fmt.Sprintf("key=[%s]的数据不存在", checkKey)))
@@ -233,8 +241,8 @@ func CheckMap(params map[string]any, checkKey, checkType string, noExcept ...boo
 
 func ErrorMessage(user *User, err error) *Message {
 	message := &Message{
-		FromID:     user.UserEntity.UUID,
-		FromName:   user.UserEntity.NickName,
+		FromID:     uuid.Nil,
+		FromName:   "系统管理员",
 		MType:      MsgTypeError,
 		MsgType:    MtText,
 		To:         map[uuid.UUID]string{user.UserEntity.UUID: user.UserEntity.NickName},
@@ -243,4 +251,30 @@ func ErrorMessage(user *User, err error) *Message {
 		MsgTime:    time.Now(),
 	}
 	return message
+}
+
+func WelComeMessage(user *User, chatRoom *ChatRoom) *Message {
+	return &Message{
+		FromID:     uuid.Nil,
+		FromName:   "系统管理员",
+		MType:      MsgTypeSystem,
+		MsgType:    MtText,
+		To:         map[uuid.UUID]string{user.UserEntity.UUID: user.UserEntity.NickName},
+		MsgContent: fmt.Sprintf("欢迎【%s】进入【%s】聊天室", user.UserEntity.NickName, chatRoom.CR.Name),
+		Files:      nil,
+		MsgTime:    time.Now(),
+	}
+}
+
+func LeavingMessage(user *User, chatRoom *ChatRoom) *Message {
+	return &Message{
+		FromID:     uuid.Nil,
+		FromName:   "系统管理员",
+		MType:      MsgTypeSystem,
+		MsgType:    MtText,
+		To:         map[uuid.UUID]string{user.UserEntity.UUID: user.UserEntity.NickName},
+		MsgContent: fmt.Sprintf("用户【%s】离开【%s】聊天室", user.UserEntity.NickName, chatRoom.CR.Name),
+		Files:      nil,
+		MsgTime:    time.Now(),
+	}
 }

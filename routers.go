@@ -19,6 +19,7 @@ func InitRouters(r *gin.Engine) {
 	new(controllers.UserController).Router(r)
 	new(controllers.TokenController).Router(r)
 	new(controllers.FriendController).Router(r)
+	new(controllers.ChatRoomController).Router(r)
 	// ws
 	new(controllers.WebSocketController).Router(r)
 }
