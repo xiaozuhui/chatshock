@@ -21,3 +21,17 @@ type BaseEntity struct {
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `json:"deleted_at"`
 }
+
+func NewBaseEntity(id uuid.UUID, createTime ...time.Time) *BaseEntity {
+	if id == uuid.Nil {
+		id, _ = uuid.NewV4()
+	}
+	if len(createTime) < 1 {
+		createTime = []time.Time{time.Now()}
+	}
+	return &BaseEntity{
+		UUID:      id,
+		CreatedAt: createTime[0],
+		UpdatedAt: createTime[0],
+	}
+}
