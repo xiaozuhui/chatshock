@@ -20,7 +20,8 @@ type User struct {
 	IPAddress         string               `json:"ip_address"`          // 当时的用户IP地址
 }
 
-var System = &User{UserEntity: nil, MessageChannel: make(chan *Message)} // 系统默认用户
+// TODO 系统管理员需要在init数据表时，写入数据库
+//var System = &User{UserEntity: nil, MessageChannel: make(chan *Message)} // 系统默认用户
 
 func NewUser(userID uuid.UUID, userEntity *entities.UserEntity, conn *websocket.Conn) *User {
 	// 如果存在直接获取
@@ -72,18 +73,21 @@ func (u *User) ReceiveMessage(ctx context.Context) error {
 			u.MessageChannel <- ErrorMessage(u, err)
 			continue
 		}
-		// TODO 判断类型，发送到私信还是发送到聊天室，通过broadcast发送
+		// 判断类型，发送到私信还是发送到聊天室，通过broadcast发送
 		switch sendMsg.MType {
 		case MsgTypeNormal:
 			// 私信
-			for uID := range sendMsg.To {
-				if bU, ok := BroadCaster.Users[uID]; ok {
-					bU.MessageChannel <- sendMsg
-				}
+			if bU, ok := BroadCaster.Users[sendMsg.To]; ok {
+				bU.MessageChannel <- sendMsg
+			} else {
+				// TODO 如果用户没有链接，那么需要存入数据库，到时候由客户端主动拉取数据
+				continue
 			}
 		case MsgTypeChatRoom:
-			// TODO 聊天室消息
-			continue
+			// 聊天室消息
+			if room, ok := BroadCaster.ChatRooms[sendMsg.ToChatRoom]; ok {
+				room.MessageChannel <- sendMsg
+			}
 		}
 	}
 }

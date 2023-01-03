@@ -31,7 +31,6 @@ func (e *WebSocketController) Router(engine *gin.Engine) {
 // LinkWebsocket 连接websocket
 func (e *WebSocketController) LinkWebsocket(c *gin.Context) {
 	userService := services.UserFactory()
-	log.Info("链接中...")
 	userID := c.DefaultQuery("user_id", "")
 	userUUID, err := uuid.FromString(userID)
 	if err != nil {

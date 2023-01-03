@@ -58,11 +58,8 @@ func (c *ChatRoom) Listen() {
 			c.BroadCast(msg)
 		case userID := <-c.canInChatRoom:
 			// 判断是否已经在聊天室中
-			log.Infof("【%v】判断是否在聊天室中开始", userID)
 			_, ok := c.CR.Users[userID]
-			log.Info(ok)
 			c.isInChatRoom <- ok
-			log.Info("判断是否在聊天室中结束")
 		}
 	}
 }
@@ -93,7 +90,11 @@ func (c *ChatRoom) BroadCast(msg *Message) {
 		userIDs = append(userIDs, k)
 	}
 	for _, uID := range userIDs {
-		BroadCaster.Users[uID].MessageChannel <- msg
+		if u, ok := BroadCaster.Users[uID]; ok {
+			u.MessageChannel <- msg
+		} else {
+			// TODO 同样要保存到数据库
+		}
 	}
 }
 
