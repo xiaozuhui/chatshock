@@ -10,6 +10,7 @@ package controllers
 
 import (
 	"chatshock/applications"
+	"chatshock/entities"
 	"chatshock/middlewares"
 	"chatshock/services"
 	"chatshock/utils"
@@ -27,7 +28,8 @@ type ChatRoomController struct {
 func (e *ChatRoomController) Router(engine *gin.Engine) {
 	crH := engine.Group("/v1/chatroom")
 	crH.Use(middlewares.JWTAuth())
-	crH.GET(":room_id")
+	crH.GET(":room_id", e.GetChatRoom)
+	crH.GET(":room_id/users", e.GetChatRoomUsers)
 	crH.POST("", e.CreateChatRoom)
 	crH.DELETE("")
 	crH.GET("/:room_id/add", e.AddCreateChatRoom)
@@ -87,18 +89,15 @@ func (e *ChatRoomController) AddCreateChatRoom(c *gin.Context) {
 	if err != nil {
 		panic(errors.WithStack(err))
 	}
-	fmt.Println("判断是否在聊天室中...")
 	// 判断是否在聊天室中...
 	chatRoom, ok := websockets.BroadCaster.ChatRooms[roomID]
 	if !ok {
 		panic(errors.WithStack(errors.New(fmt.Sprintf("ID为[%v]的聊天室不存在", roomID))))
 	}
-	fmt.Println("判断是否在聊天室中...")
 	ok = chatRoom.CanEnterChatRoom(userID)
 	if !ok {
 		panic(errors.WithStack(errors.New(fmt.Sprintf("用户[%v]已经在聊天室中", userID))))
 	}
-	fmt.Println("判断是否在聊天室中...")
 	// 加入了聊天室
 	chatRoomService := services.ChatRoomFactory()
 	room, err := chatRoomService.IntoChatRoom(userID, roomID)
@@ -111,4 +110,38 @@ func (e *ChatRoomController) AddCreateChatRoom(c *gin.Context) {
 	fmt.Println(len(chatRoom.EnteringChannel))
 	chatRoom.EnteringChannel <- websockets.BroadCaster.Users[userID]
 	c.JSON(200, gin.H{})
+}
+
+// GetChatRoom 获取聊天室详情
+func (e *ChatRoomController) GetChatRoom(c *gin.Context) {
+	id := c.Param("room_id")
+	roomID, err := uuid.FromString(id)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	chatRoomService := services.ChatRoomFactory()
+	room, err := chatRoomService.GetChatRoom(roomID)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	c.JSON(200, room)
+}
+
+// GetChatRoomUsers 获取聊天室下的用户列表
+func (e *ChatRoomController) GetChatRoomUsers(c *gin.Context) {
+	id := c.Param("room_id")
+	roomID, err := uuid.FromString(id)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	chatRoomService := services.ChatRoomFactory()
+	room, err := chatRoomService.GetChatRoom(roomID)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	var userMap map[uuid.UUID]*entities.UserEntity
+	if len(room) > 0 {
+		userMap = room[0].Users
+	}
+	c.JSON(200, userMap)
 }

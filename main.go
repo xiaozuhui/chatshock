@@ -36,7 +36,11 @@ func main() {
 	flag.Parse()
 	var r = gin.New()
 	r.Use(middlewares.AccessLog())
-	r.Use(gin.Recovery())
+	//r.Use(gin.Recovery())
+	r.Use(gin.CustomRecovery(func(c *gin.Context, err any) {
+		c.JSON(500, gin.H{"code": -1, "err_msg": err.(error).Error()})
+		c.Abort()
+	}))
 	InitConfig(configVersion)
 	InitDatabase()
 	InitRedis()

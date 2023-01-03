@@ -66,9 +66,7 @@ func (c *ChatRoom) Listen() {
 
 // CanEnterChatRoom 判断能否加入聊天室
 func (c *ChatRoom) CanEnterChatRoom(userID uuid.UUID) bool {
-	log.Infof("【%v】判断是否在聊天室中开始", userID)
 	c.canInChatRoom <- userID
-	log.Infof("【%v】判断是否在聊天室中开始", userID)
 	return !(<-c.isInChatRoom)
 }
 
