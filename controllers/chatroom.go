@@ -4,7 +4,7 @@ package controllers
  * @Author: xiaozuhui
  * @Date: 2022-12-19 15:19:34
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2023-01-02 02:11:12
+ * @LastEditTime: 2023-01-05 22:23:35
  * @Description:
  */
 
@@ -32,7 +32,8 @@ func (e *ChatRoomController) Router(engine *gin.Engine) {
 	crH.GET(":room_id/users", e.GetChatRoomUsers)
 	crH.POST("", e.CreateChatRoom)
 	crH.DELETE("")
-	crH.GET("/:room_id/add", e.AddCreateChatRoom)
+	crH.POST(":room_id/out", e.OutFromChatRoom)
+	crH.GET(":room_id/add", e.AddChatRoom)
 }
 
 // CreateChatRoom
@@ -75,7 +76,7 @@ func (e *ChatRoomController) CreateChatRoom(c *gin.Context) {
 }
 
 // AddCreateChatRoom 加入聊天室
-func (e *ChatRoomController) AddCreateChatRoom(c *gin.Context) {
+func (e *ChatRoomController) AddChatRoom(c *gin.Context) {
 	// 获取用户id
 	var userID uuid.UUID
 	if claims, ok := c.Get("claims"); ok {
@@ -107,7 +108,6 @@ func (e *ChatRoomController) AddCreateChatRoom(c *gin.Context) {
 	// 更新broadcast
 	chatRoom.UpdateChatRoomUser(room)
 	// 发送欢迎消息
-	fmt.Println(len(chatRoom.EnteringChannel))
 	chatRoom.EnteringChannel <- websockets.BroadCaster.Users[userID]
 	c.JSON(200, gin.H{})
 }
@@ -144,4 +144,38 @@ func (e *ChatRoomController) GetChatRoomUsers(c *gin.Context) {
 		userMap = room[0].Users
 	}
 	c.JSON(200, userMap)
+}
+
+// OutFromChatRoom
+/**
+ * @description:  离开聊天室
+ * @param {*gin.CContext} c
+ * @return {*}
+ * @author: xiaozuhui
+ */
+func (e *ChatRoomController) OutFromChatRoom(c *gin.Context) {
+	var userID uuid.UUID
+	if claims, ok := c.Get("claims"); ok {
+		userID = claims.(*utils.UserClaims).UUID
+	} else {
+		panic(errors.WithStack(errors.New("获取不到用户信息")))
+	}
+	id := c.Param("room_id")
+	roomID, err := uuid.FromString(id)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	chatRoomService := services.ChatRoomFactory()
+	room, err := chatRoomService.OutFromChatRoom(userID, roomID)
+	if err != nil {
+		panic(errors.WithStack(err))
+	}
+	// 从chatroom中离开
+	if chatRoom, ok := websockets.BroadCaster.ChatRooms[roomID]; ok {
+		chatRoom.UpdateChatRoomUser(room)
+		chatRoom.LeavingChannel <- websockets.BroadCaster.Users[userID]
+	} else {
+		panic(errors.WithStack(errors.New(fmt.Sprintf("ID为[%v]的聊天室不存在", roomID))))
+	}
+	c.JSON(200, gin.H{})
 }

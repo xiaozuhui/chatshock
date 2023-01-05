@@ -4,7 +4,7 @@ package services
  * @Author: xiaozuhui
  * @Date: 2023-01-01 22:30:51
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2023-01-02 01:43:52
+ * @LastEditTime: 2023-01-05 22:07:29
  * @Description:
  */
 
@@ -100,4 +100,21 @@ func (s ChatRoomService) IntoChatRoom(userID, chatroomID uuid.UUID) (*entities.C
 	}
 	newEnt, err := s.ChatRoomRepo.FindChatRoom(chatroomID)
 	return newEnt, err
+}
+
+// OutFromChatRoom
+/**
+ * @description:  离开某个聊天室
+ * @param {*} userID
+ * @param {uuid.UUID} chatroomID
+ * @return {*}
+ * @author: xiaozuhui
+ */
+func (s ChatRoomService) OutFromChatRoom(userID, chatroomID uuid.UUID) (*entities.ChatRoom, error) {
+	err := s.ChatRoomRepo.OutFromChatRoom(userID, chatroomID)
+	if err != nil {
+		return nil, err
+	}
+	room, err := s.ChatRoomRepo.FindChatRoom(chatroomID)
+	return room, err
 }

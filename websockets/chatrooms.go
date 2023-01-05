@@ -4,15 +4,16 @@ package websockets
  * @Author: xiaozuhui
  * @Date: 2022-12-19 09:01:30
  * @LastEditors: xiaozuhui
- * @LastEditTime: 2023-01-02 01:55:04
+ * @LastEditTime: 2023-01-05 21:56:19
  * @Description:
  */
 
 import (
 	"chatshock/entities"
+	"sync"
+
 	"github.com/gofrs/uuid"
 	log "github.com/sirupsen/logrus"
-	"sync"
 )
 
 type ChatRoom struct {
@@ -73,11 +74,11 @@ func (c *ChatRoom) CanEnterChatRoom(userID uuid.UUID) bool {
 func NewChatRoom(crEntity *entities.ChatRoom) ChatRoom {
 	return ChatRoom{
 		CR:              crEntity,
-		EnteringChannel: make(chan *User, 0),
-		LeavingChannel:  make(chan *User, 0),
-		MessageChannel:  make(chan *Message, 0),
-		canInChatRoom:   make(chan uuid.UUID, 0),
-		isInChatRoom:    make(chan bool, 0),
+		EnteringChannel: make(chan *User),
+		LeavingChannel:  make(chan *User),
+		MessageChannel:  make(chan *Message),
+		canInChatRoom:   make(chan uuid.UUID),
+		isInChatRoom:    make(chan bool),
 	}
 }
 
