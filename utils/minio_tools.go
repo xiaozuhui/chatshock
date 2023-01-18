@@ -103,16 +103,15 @@ func UploadImage(bucketName, objectName string, img *bytes.Buffer) (*minio.Uploa
  * @return {*url.URL, error} 文件可下载URL或错误
  * @author: xiaozuhui
  */
-func GetFileUrl(bucketName, objectName string) (*url.URL, error) {
+func GetFileUrl(bucketName, objectName string, expires *time.Duration) (*url.URL, error) {
 	ctx := context.Background()
-	_url, err := configs.MinioClient.PresignedGetObject(ctx, bucketName, objectName, Expires, url.Values{})
+	if expires == nil {
+		*expires = Expires
+	}
+	_url, err := configs.MinioClient.PresignedGetObject(ctx, bucketName, objectName, *expires, url.Values{})
 	if err != nil {
 		return nil, err
 	}
-	//// TODO 目前不需要使用这个方法：取出url后，存入redis
-	//_, err = RedisSet(fmt.Sprintf("%s-avatar_url", bucketName), _url.String(), &expires)
-	//if err != nil {
-	//	return nil, err
-	//}
+
 	return _url, nil
 }

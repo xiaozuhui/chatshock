@@ -46,7 +46,7 @@ func MakeUser(userEntity entities.UserEntity) (*User, error) {
 	if userEntity.Avatar == nil ||
 		userEntity.Avatar.FileURL == "" ||
 		time.Now().After(*userEntity.Avatar.URLExpireTime) {
-		url, err := utils.GetFileUrl(userEntity.UUID.String(), userEntity.UUID.String()+"_avatar.png")
+		url, err := utils.GetFileUrl(userEntity.UUID.String(), userEntity.UUID.String()+"_avatar.png", nil)
 		if err != nil {
 			return nil, err
 		}

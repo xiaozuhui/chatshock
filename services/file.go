@@ -31,7 +31,7 @@ func (s FileService) GetFile(id uuid.UUID) (*entities.FileEntity, error) {
 	now := time.Now()
 	if now.After(*file.URLExpireTime) {
 		// 如果now大于过期时间，那么需要重新获取minio的url
-		url_, err := utils.GetFileUrl(file.Bucket, file.FileName)
+		url_, err := utils.GetFileUrl(file.Bucket, file.FileName, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -58,7 +58,7 @@ func (s FileService) GetFiles(ids ...uuid.UUID) ([]*entities.FileEntity, error) 
 		now := time.Now()
 		if now.After(*file.URLExpireTime) {
 			// 如果now大于过期时间，那么需要重新获取minio的url
-			url_, err := utils.GetFileUrl(file.Bucket, file.FileName)
+			url_, err := utils.GetFileUrl(file.Bucket, file.FileName, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -86,7 +86,7 @@ func (s FileService) SaveFile(info *minio.UploadInfo,
 	file.FileName = info.Key
 	file.FileType = fileType
 	file.ContentType = contentType
-	url_, err := utils.GetFileUrl(info.Bucket, info.Key)
+	url_, err := utils.GetFileUrl(info.Bucket, info.Key, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (s FileService) SaveFiles(infos []map[string]interface{}) ([]*entities.File
 		file.FileName = uploadInfo.Key
 		file.FileType = fileType
 		file.ContentType = contentType
-		url_, err := utils.GetFileUrl(uploadInfo.Bucket, uploadInfo.Key)
+		url_, err := utils.GetFileUrl(uploadInfo.Bucket, uploadInfo.Key, nil)
 		if err != nil {
 			return nil, err
 		}
