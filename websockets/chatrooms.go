@@ -21,6 +21,7 @@ type ChatRoom struct {
 	EnteringChannel chan *User         `json:"entering_channel"` // 进入聊天室的消息
 	LeavingChannel  chan *User         `json:"leaving_channel"`  // 离开聊天室消息
 	MessageChannel  chan *Message      `json:"message_channel"`  // 消息
+	//UserListChannel chan *Message      `json:"user_list_channel"` // 在线用户
 
 	canInChatRoom chan uuid.UUID
 	isInChatRoom  chan bool
@@ -61,6 +62,12 @@ func (c *ChatRoom) Listen() {
 			// 判断是否已经在聊天室中
 			_, ok := c.CR.Users[userID]
 			c.isInChatRoom <- ok
+			//case msg := <-c.UserListChannel:
+			//	// 用户列表
+			//	if msg == nil {
+			//		continue
+			//	}
+			//	c.BroadCast(msg)
 		}
 	}
 }

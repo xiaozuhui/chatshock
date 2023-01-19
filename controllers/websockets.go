@@ -59,6 +59,13 @@ func (e *WebSocketController) LinkWebsocket(c *gin.Context) {
 	chatUser := websockets.NewUser(userUUID, userEntity, conn)
 	// 开启给用户发消息的goroutine
 	go chatUser.SendMessage(ctx)
+	// 发送当前在线用户列表
+	userListMsg := websockets.OnlineUserListMessage()
+	websockets.UserLock.Lock()
+	for _, u := range websockets.BroadCaster.Users {
+		u.MessageChannel <- userListMsg
+	}
+	websockets.UserLock.Unlock()
 	// 阻塞获取ws数据
 	err = chatUser.ReceiveMessage(ctx)
 	if err != nil {

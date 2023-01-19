@@ -105,10 +105,11 @@ func UploadImage(bucketName, objectName string, img *bytes.Buffer) (*minio.Uploa
  */
 func GetFileUrl(bucketName, objectName string, expires *time.Duration) (*url.URL, error) {
 	ctx := context.Background()
-	if expires == nil {
-		*expires = Expires
+	exp := Expires
+	if expires != nil {
+		exp = *expires
 	}
-	_url, err := configs.MinioClient.PresignedGetObject(ctx, bucketName, objectName, *expires, url.Values{})
+	_url, err := configs.MinioClient.PresignedGetObject(ctx, bucketName, objectName, exp, url.Values{})
 	if err != nil {
 		return nil, err
 	}

@@ -75,7 +75,7 @@ func (e *ChatRoomController) CreateChatRoom(c *gin.Context) {
 	c.JSON(200, roomEntity)
 }
 
-// AddCreateChatRoom 加入聊天室
+// AddChatRoom 加入聊天室
 func (e *ChatRoomController) AddChatRoom(c *gin.Context) {
 	// 获取用户id
 	var userID uuid.UUID

@@ -21,16 +21,17 @@ import (
 )
 
 type Message struct {
-	FromID     uuid.UUID              `json:"from_id"`
-	FromName   string                 `json:"from_name"`   // 哪个用户发送的消息
-	MType      MType                  `json:"type"`        // 请求或是来源的消息类型
-	MsgType    MessageType            `json:"msg_type"`    // 消息类型
-	MsgContent string                 `json:"msg_content"` // 消息内容
-	Files      []*entities.FileEntity `json:"files"`       // 文件数组
-	MsgTime    time.Time              `json:"msg_time"`    // 消息创建的时间
-	To         uuid.UUID              `json:"to"`          // 发送给(提及)哪些用户(如果是@，可以@多个)
-	ToChatRoom uuid.UUID              `json:"to_chatroom"` // 发送到哪个聊天室
-	At         map[uuid.UUID]string   `json:"at"`          // @了哪些用户
+	FromID         uuid.UUID              `json:"from_id"`
+	FromName       string                 `json:"from_name"`        // 哪个用户发送的消息
+	MType          MType                  `json:"type"`             // 请求或是来源的消息类型
+	MsgType        MessageType            `json:"msg_type"`         // 消息类型
+	MsgContent     string                 `json:"msg_content"`      // 消息内容
+	Files          []*entities.FileEntity `json:"files"`            // 文件数组
+	MsgTime        time.Time              `json:"msg_time"`         // 消息创建的时间
+	To             uuid.UUID              `json:"to"`               // 发送给(提及)哪些用户(如果是@，可以@多个)
+	ToChatRoom     uuid.UUID              `json:"to_chatroom"`      // 发送到哪个聊天室
+	At             map[uuid.UUID]string   `json:"at"`               // @了哪些用户
+	OnlineUserList []uuid.UUID            `json:"online_user_list"` // 在线用户列表
 }
 
 // MessageIn 从客户端传进来的数据，将会转为message
@@ -60,6 +61,7 @@ const (
 	MtCard                            // 7、复合消息（文字消息和图片组合在一起的消息类型）,卡片消息
 	MtURL                             // 8、连接消息（安全连接，包括名片也属于连接）
 	MtVisitingCard                    // 9、封装了一层的连接消息
+	MtUserList                        // 10、用户列表
 )
 
 const (
@@ -67,7 +69,7 @@ const (
 	MsgTypeChatRoom              // 聊天室消息，broadcast广播
 	MsgTypeSystem                // 系统消息，正常消息，可以是通知
 	MsgTypeError                 // 系统消息，错误消息
-	MsgTypeUserList
+	MsgTypeUserList              // 在线用户列表，可以用在判断是否在线
 )
 
 // NewMessage 创建新数据，将
@@ -139,7 +141,7 @@ func WelComeMessage(user *User, chatRoom *ChatRoom) *Message {
 		FromName:   "系统管理员",
 		MType:      MsgTypeSystem,
 		MsgType:    MtText,
-		To:         user.UserEntity.UUID,
+		To:         uuid.Nil,
 		MsgContent: fmt.Sprintf("欢迎【%s】进入【%s】聊天室", user.UserEntity.NickName, chatRoom.CR.Name),
 		Files:      nil,
 		MsgTime:    time.Now(),
@@ -152,9 +154,29 @@ func LeavingMessage(user *User, chatRoom *ChatRoom) *Message {
 		FromName:   "系统管理员",
 		MType:      MsgTypeSystem,
 		MsgType:    MtText,
-		To:         user.UserEntity.UUID,
+		To:         uuid.Nil,
 		MsgContent: fmt.Sprintf("用户【%s】离开【%s】聊天室", user.UserEntity.NickName, chatRoom.CR.Name),
 		Files:      nil,
 		MsgTime:    time.Now(),
+	}
+}
+
+func OnlineUserListMessage() *Message {
+	userList := make([]uuid.UUID, 0, 0)
+	UserLock.Lock()
+	for uid, _ := range BroadCaster.Users {
+		userList = append(userList, uid)
+	}
+	UserLock.Unlock()
+	return &Message{
+		FromID:         uuid.Nil,
+		FromName:       "系统管理员",
+		MType:          MsgTypeUserList,
+		MsgType:        MtUserList,
+		To:             uuid.Nil,
+		MsgContent:     "在线用户列表",
+		Files:          nil,
+		MsgTime:        time.Now(),
+		OnlineUserList: userList,
 	}
 }
